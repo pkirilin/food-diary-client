@@ -1,0 +1,14 @@
+@import '../../../variables.scss';
+@import '../FormControls.variables.scss';
+
+.dropdown-item {
+  padding: $form-control-padding;
+  transition: 0.2s;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background-color: $color-light-green;
+  }
+}
