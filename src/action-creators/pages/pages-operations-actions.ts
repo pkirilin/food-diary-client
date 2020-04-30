@@ -1,4 +1,4 @@
-import { PageCreateEdit } from '../../models';
+import { PageCreateEdit, PageEditRequest } from '../../models';
 import { ActionCreator, Dispatch } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import {
@@ -14,6 +14,7 @@ import {
   DeletePagesRequestAction,
 } from '../../action-types';
 import { createPageAsync, deletePagesAsync, editPageAsync } from '../../services';
+import { readBadRequestResponseAsync } from '../../utils/bad-request-response-reader';
 
 const createPageRequest = (page: PageCreateEdit, operationMessage: string): CreatePageRequestAction => {
   return {
@@ -23,9 +24,10 @@ const createPageRequest = (page: PageCreateEdit, operationMessage: string): Crea
   };
 };
 
-const createPageSuccess = (): CreatePageSuccessAction => {
+const createPageSuccess = (createdPageId: number): CreatePageSuccessAction => {
   return {
     type: PagesOperationsActionTypes.CreateSuccess,
+    createdPageId,
   };
 };
 
@@ -36,10 +38,10 @@ const createPageError = (error: string): CreatePageErrorAction => {
   };
 };
 
-const editPageRequest = (page: PageCreateEdit, operationMessage: string): EditPageRequestAction => {
+const editPageRequest = (request: PageEditRequest, operationMessage: string): EditPageRequestAction => {
   return {
     type: PagesOperationsActionTypes.EditRequest,
-    page,
+    request,
     operationMessage,
   };
 };
@@ -77,6 +79,12 @@ const deletePagesError = (error: string): DeletePagesErrorAction => {
   };
 };
 
+enum PagesOperationsBaseErrorMessages {
+  Create = 'Failed to create page',
+  Edit = 'Failed to update page',
+  Delete = 'Failed to delete selected',
+}
+
 export const createPage: ActionCreator<ThunkAction<
   Promise<CreatePageSuccessAction | CreatePageErrorAction>,
   void,
@@ -85,19 +93,30 @@ export const createPage: ActionCreator<ThunkAction<
 >> = (page: PageCreateEdit) => {
   return async (dispatch: Dispatch): Promise<CreatePageSuccessAction | CreatePageErrorAction> => {
     dispatch(createPageRequest(page, 'Creating page'));
-
     try {
       const response = await createPageAsync(page);
-      if (!response.ok) {
-        const errorMessageForInvalidData = 'Failed to create page (invalid data)';
-        alert(errorMessageForInvalidData);
-        return dispatch(createPageError(errorMessageForInvalidData));
+
+      if (response.ok) {
+        const createdPageIdStr = await response.text();
+        return dispatch(createPageSuccess(+createdPageIdStr));
       }
-      return dispatch(createPageSuccess());
+
+      switch (response.status) {
+        case 400:
+          const badRequestResponse = await readBadRequestResponseAsync(response);
+          alert(`${PagesOperationsBaseErrorMessages.Create}: ${badRequestResponse}`);
+          return dispatch(createPageError(`${PagesOperationsBaseErrorMessages.Create}: ${badRequestResponse}`));
+        case 500:
+          alert(`${PagesOperationsBaseErrorMessages.Create}: server error`);
+          return dispatch(createPageError(`${PagesOperationsBaseErrorMessages.Create}: server error`));
+        default:
+          alert(`${PagesOperationsBaseErrorMessages.Create}: unknown response code`);
+          return dispatch(createPageError(`${PagesOperationsBaseErrorMessages.Create}: unknown response code`));
+      }
     } catch (error) {
-      const errorMessageForServerError = 'Failed to create page (server error)';
-      alert(errorMessageForServerError);
-      return dispatch(createPageError(errorMessageForServerError));
+      console.error(error);
+      alert(PagesOperationsBaseErrorMessages.Create);
+      return dispatch(createPageError(PagesOperationsBaseErrorMessages.Create));
     }
   };
 };
@@ -105,23 +124,34 @@ export const createPage: ActionCreator<ThunkAction<
 export const editPage: ActionCreator<ThunkAction<
   Promise<EditPageSuccessAction | EditPageErrorAction>,
   void,
-  PageCreateEdit,
+  PageEditRequest,
   EditPageSuccessAction | EditPageErrorAction
->> = (page: PageCreateEdit) => {
+>> = (request: PageEditRequest) => {
   return async (dispatch: Dispatch): Promise<EditPageSuccessAction | EditPageErrorAction> => {
-    dispatch(editPageRequest(page, 'Updating page'));
+    dispatch(editPageRequest(request, 'Updating page'));
     try {
-      const response = await editPageAsync(page);
-      if (!response.ok) {
-        const errorMessageForInvalidData = 'Failed to update page (invalid data)';
-        alert(errorMessageForInvalidData);
-        return dispatch(editPageError(errorMessageForInvalidData));
+      const response = await editPageAsync(request);
+
+      if (response.ok) {
+        return dispatch(editPageSuccess());
       }
-      return dispatch(editPageSuccess());
+
+      switch (response.status) {
+        case 400:
+          const badRequestResponse = await readBadRequestResponseAsync(response);
+          alert(`${PagesOperationsBaseErrorMessages.Edit}: ${badRequestResponse}`);
+          return dispatch(editPageError(`${PagesOperationsBaseErrorMessages.Edit}: ${badRequestResponse}`));
+        case 500:
+          alert(`${PagesOperationsBaseErrorMessages.Edit}: server error`);
+          return dispatch(editPageError(`${PagesOperationsBaseErrorMessages.Edit}: server error`));
+        default:
+          alert(`${PagesOperationsBaseErrorMessages.Edit}: unknown response code`);
+          return dispatch(editPageError(`${PagesOperationsBaseErrorMessages.Edit}: unknown response code`));
+      }
     } catch (error) {
-      const errorMessageForServerError = 'Failed to update page (server error)';
-      alert(errorMessageForServerError);
-      return dispatch(editPageError(errorMessageForServerError));
+      console.error(error);
+      alert(PagesOperationsBaseErrorMessages.Edit);
+      return dispatch(editPageError(PagesOperationsBaseErrorMessages.Edit));
     }
   };
 };
@@ -137,16 +167,37 @@ export const deletePages: ActionCreator<ThunkAction<
     dispatch(deletePagesRequest(`Deleting ${messageSuffixForPage}`));
     try {
       const response = await deletePagesAsync(pagesIds);
-      if (!response.ok) {
-        const errorMessageForInvalidData = `Failed to delete selected ${messageSuffixForPage} (invalid data)`;
-        alert(errorMessageForInvalidData);
-        return dispatch(deletePagesError(errorMessageForInvalidData));
+
+      if (response.ok) {
+        return dispatch(deletePagesSuccess());
       }
-      return dispatch(deletePagesSuccess());
+
+      switch (response.status) {
+        case 400:
+          const badRequestResponse = await readBadRequestResponseAsync(response);
+          alert(`${PagesOperationsBaseErrorMessages.Delete}: ${badRequestResponse}`);
+          return dispatch(
+            deletePagesError(
+              `${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}: ${badRequestResponse}`,
+            ),
+          );
+        case 500:
+          alert(`${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}: server error`);
+          return dispatch(
+            deletePagesError(`${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}: server error`),
+          );
+        default:
+          alert(`${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}: unknown response code`);
+          return dispatch(
+            deletePagesError(
+              `${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}: unknown response code`,
+            ),
+          );
+      }
     } catch (error) {
-      const errorMessageForServerError = `Failed to delete selected ${messageSuffixForPage} (server error)`;
-      alert(errorMessageForServerError);
-      return dispatch(deletePagesError(errorMessageForServerError));
+      console.error(error);
+      alert(`${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}`);
+      return dispatch(deletePagesError(`${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}`));
     }
   };
 };

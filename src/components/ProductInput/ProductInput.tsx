@@ -3,8 +3,8 @@ import './ProductInput.scss';
 import { FormGroup, Input, Label, Button, DropdownList, categoryDropdownItemRenderer } from '../Controls';
 import Loader from '../Loader';
 import { StateToPropsMapResult, DispatchToPropsMapResult } from './ProductInputConnected';
-import { CreateProductSuccessAction } from '../../action-types';
-import { useDebounce } from '../../hooks';
+import { ProductsOperationsActionTypes } from '../../action-types';
+import { useDebounce, useProductValidation } from '../../hooks';
 
 interface ProductInputProps extends StateToPropsMapResult, DispatchToPropsMapResult {}
 
@@ -13,11 +13,12 @@ const ProductInput: React.FC<ProductInputProps> = ({
   productItemsFetchState,
   categoryItems,
   categoryDropdownItems,
-  isCategoryDropdownContentLoading,
+  categoryDropdownItemsFetchState,
   productsFilter,
   createProduct,
   getProducts,
   getCategoryDropdownItems,
+  getCategories,
 }: ProductInputProps) => {
   const [productNameInputValue, setProductNameInputValue] = useState('');
   const [caloriesCost, setCaloriesCost] = useState(100);
@@ -26,10 +27,19 @@ const ProductInput: React.FC<ProductInputProps> = ({
 
   const { performing: isOperationInProcess, message: operationMessage } = productOperationStatus;
   const { loading: isProductsTableLoading } = productItemsFetchState;
+  const {
+    loading: isCategoryDropdownContentLoading,
+    error: categoryDropdownContentErrorMessage,
+  } = categoryDropdownItemsFetchState;
 
-  const isAnyInputValueEmpty = productNameInputValue === '' || caloriesCost < 1 || categoryId < 1;
+  const [isProductNameValid, isCaloriesCostValid, isCategoryNameValid] = useProductValidation(
+    productNameInputValue,
+    caloriesCost,
+    categoryNameInputValue,
+  );
+
   const isInputDisabled = isOperationInProcess || isProductsTableLoading;
-  const isAddButtonDisabled = isInputDisabled || isAnyInputValueEmpty;
+  const isAddButtonDisabled = isInputDisabled || !isProductNameValid || !isCaloriesCostValid || !isCategoryNameValid;
 
   const setCategoryInputByFilter = (): void => {
     if (productsFilter.categoryId !== undefined) {
@@ -61,8 +71,10 @@ const ProductInput: React.FC<ProductInputProps> = ({
     setCategoryNameInputValue,
   ]);
 
-  const categoryNameChangeDebounce = useDebounce(() => {
-    getCategoryDropdownItems();
+  const categoryNameChangeDebounce = useDebounce((newCategoryName?: string) => {
+    getCategoryDropdownItems({
+      categoryNameFilter: newCategoryName,
+    });
   });
 
   const handleProductNameChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -84,26 +96,28 @@ const ProductInput: React.FC<ProductInputProps> = ({
 
   const handleCategoryNameDropdownInputChange = (newCategoryNameInputValue: string): void => {
     setCategoryNameInputValue(newCategoryNameInputValue);
-    categoryNameChangeDebounce();
+    categoryNameChangeDebounce(newCategoryNameInputValue);
   };
 
   const handleCategoryDropdownContentOpen = (): void => {
-    getCategoryDropdownItems();
+    getCategoryDropdownItems({
+      categoryNameFilter: categoryNameInputValue,
+    });
   };
 
   const handleAddButtonClick = async (): Promise<void> => {
-    const createProductAction = await createProduct({
-      id: 0,
-      name: productNameInputValue,
+    const { type: createProductActionType } = await createProduct({
+      name: productNameInputValue.trim(),
       caloriesCost,
       categoryId,
     });
 
-    if (createProductAction as CreateProductSuccessAction) {
-      await getProducts(productsFilter);
+    if (createProductActionType === ProductsOperationsActionTypes.CreateSuccess) {
       setProductNameInputValue('');
       setCaloriesCost(100);
       setCategoryInputByFilter();
+      await getProducts(productsFilter);
+      await getCategories();
     }
   };
 
@@ -144,6 +158,7 @@ const ProductInput: React.FC<ProductInputProps> = ({
             inputValue={categoryNameInputValue}
             isContentLoading={isCategoryDropdownContentLoading}
             disabled={isInputDisabled}
+            contentErrorMessage={categoryDropdownContentErrorMessage}
             onValueSelect={handleCategoryDropdownItemSelect}
             onInputValueChange={handleCategoryNameDropdownInputChange}
             onContentOpen={handleCategoryDropdownContentOpen}

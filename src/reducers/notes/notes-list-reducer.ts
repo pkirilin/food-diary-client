@@ -15,7 +15,7 @@ const initNotesForMealFetchStates = (): NotesForMealFetchState[] => {
 };
 
 const initialState: NotesListState = {
-  notesForPage: null,
+  noteItems: [],
   notesForPageFetchState: {
     loading: false,
     loaded: false,
@@ -30,7 +30,6 @@ const notesListReducer = (state: NotesListState = initialState, action: NotesLis
       return {
         ...state,
         notesForPageFetchState: {
-          ...state.notesForPageFetchState,
           loading: true,
           loaded: false,
         },
@@ -38,9 +37,8 @@ const notesListReducer = (state: NotesListState = initialState, action: NotesLis
     case NotesListActionTypes.SuccessForPage:
       return {
         ...state,
-        notesForPage: action.notesForPage,
+        noteItems: action.noteItems,
         notesForPageFetchState: {
-          ...state.notesForPageFetchState,
           loading: false,
           loaded: true,
         },
@@ -49,7 +47,6 @@ const notesListReducer = (state: NotesListState = initialState, action: NotesLis
       return {
         ...state,
         notesForPageFetchState: {
-          ...state.notesForPageFetchState,
           loading: false,
           loaded: false,
           error: action.errorMessage,
@@ -71,21 +68,16 @@ const notesListReducer = (state: NotesListState = initialState, action: NotesLis
     case NotesListActionTypes.SuccessForMeal:
       return {
         ...state,
-        notesForPage: state.notesForPage
-          ? {
-              ...state.notesForPage,
-              meals: [
-                // Sorting meals by type for correct display
-                ...state.notesForPage.meals.filter(m => m.type < action.mealItem.type),
-                action.mealItem,
-                ...state.notesForPage.meals.filter(m => m.type > action.mealItem.type),
-              ],
-            }
-          : null,
+        noteItems: [
+          // Sorting meals by type for correct display
+          ...state.noteItems.filter(n => n.mealType < action.mealType),
+          ...action.noteItems,
+          ...state.noteItems.filter(n => n.mealType > action.mealType),
+        ],
         notesForMealFetchStates: [
-          ...state.notesForMealFetchStates.filter(fs => fs.mealType !== action.mealItem.type),
+          ...state.notesForMealFetchStates.filter(fs => fs.mealType !== action.mealType),
           {
-            mealType: action.mealItem.type,
+            mealType: action.mealType,
             loading: false,
             loaded: true,
           },

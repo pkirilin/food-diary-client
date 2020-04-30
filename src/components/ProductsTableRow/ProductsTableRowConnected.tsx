@@ -11,6 +11,8 @@ import {
   EditProductErrorAction,
   GetCategoryDropdownItemsSuccessAction,
   GetCategoryDropdownItemsErrorAction,
+  GetCategoriesListSuccessAction,
+  GetCategoriesListErrorAction,
 } from '../../action-types';
 import { Dispatch } from 'redux';
 import {
@@ -19,9 +21,17 @@ import {
   getProducts,
   editProduct,
   getCategoryDropdownItems,
+  getCategories,
 } from '../../action-creators';
 import { ThunkDispatch } from 'redux-thunk';
-import { ProductItem, ProductCreateEdit, CategoryDropdownItem, ProductsFilter } from '../../models';
+import {
+  ProductItem,
+  CategoryDropdownItem,
+  ProductsFilter,
+  ProductEditRequest,
+  CategoryDropdownSearchRequest,
+  CategoryItem,
+} from '../../models';
 
 export interface StateToPropsMapResult {
   editableProductsIds: number[];
@@ -44,20 +54,24 @@ const mapStateToProps = (state: FoodDiaryState): StateToPropsMapResult => {
 export interface DispatchToPropsMapResult {
   setEditableForProduct: (productId: number, editable: boolean) => void;
   getProducts: (productsFilter: ProductsFilter) => Promise<GetProductsListSuccessAction | GetProductsListErrorAction>;
-  getCategoryDropdownItems: () => Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction>;
-  editProduct: (product: ProductCreateEdit) => Promise<EditProductSuccessAction | EditProductErrorAction>;
+  getCategoryDropdownItems: (
+    request: CategoryDropdownSearchRequest,
+  ) => Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction>;
+  getCategories: () => Promise<GetCategoriesListSuccessAction | GetCategoriesListErrorAction>;
+  editProduct: (request: ProductEditRequest) => Promise<EditProductSuccessAction | EditProductErrorAction>;
   deleteProduct: (productId: number) => Promise<DeleteProductSuccessAction | DeleteProductErrorAction>;
 }
 
 type ProductsTableRowDispatch = Dispatch<SetEditableForProductAction> &
-  ThunkDispatch<ProductItem, ProductsFilter, GetProductsListSuccessAction | GetProductsListErrorAction> &
-  ThunkDispatch<void, ProductCreateEdit, EditProductSuccessAction | EditProductErrorAction> &
+  ThunkDispatch<ProductItem[], ProductsFilter, GetProductsListSuccessAction | GetProductsListErrorAction> &
+  ThunkDispatch<void, ProductEditRequest, EditProductSuccessAction | EditProductErrorAction> &
   ThunkDispatch<void, number, DeleteProductSuccessAction | DeleteProductErrorAction> &
   ThunkDispatch<
     CategoryDropdownItem[],
-    void,
+    CategoryDropdownSearchRequest,
     GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction
-  >;
+  > &
+  ThunkDispatch<CategoryItem[], void, GetCategoriesListSuccessAction | GetCategoriesListErrorAction>;
 
 const mapDispatchToProps = (dispatch: ProductsTableRowDispatch): DispatchToPropsMapResult => {
   return {
@@ -69,13 +83,16 @@ const mapDispatchToProps = (dispatch: ProductsTableRowDispatch): DispatchToProps
     ): Promise<GetProductsListSuccessAction | GetProductsListErrorAction> => {
       return dispatch(getProducts(productsFilter));
     },
-    getCategoryDropdownItems: (): Promise<
-      GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction
-    > => {
-      return dispatch(getCategoryDropdownItems());
+    getCategoryDropdownItems: (
+      request: CategoryDropdownSearchRequest,
+    ): Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction> => {
+      return dispatch(getCategoryDropdownItems(request));
     },
-    editProduct: (product: ProductCreateEdit): Promise<EditProductSuccessAction | EditProductErrorAction> => {
-      return dispatch(editProduct(product));
+    getCategories: (): Promise<GetCategoriesListSuccessAction | GetCategoriesListErrorAction> => {
+      return dispatch(getCategories());
+    },
+    editProduct: (request: ProductEditRequest): Promise<EditProductSuccessAction | EditProductErrorAction> => {
+      return dispatch(editProduct(request));
     },
     deleteProduct: (productId: number): Promise<DeleteProductSuccessAction | DeleteProductErrorAction> => {
       return dispatch(deleteProduct(productId));

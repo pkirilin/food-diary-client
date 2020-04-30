@@ -8,15 +8,17 @@ import {
 } from '../SidebarBlocks';
 import { BadgesContainer } from '../ContainerBlocks';
 import Badge from '../Badge';
-import { CategoryItem, CategoryCreateEdit } from '../../models';
+import { CategoryItem } from '../../models';
 import { StateToPropsMapResult, DispatchToPropsMapResult } from './CategoriesListItemConnected';
 import { Input, DropdownMenu, DropdownItem } from '../Controls';
 import Icon from '../Icon';
 import {
-  DeleteCategorySuccessAction,
+  CategoriesOperationsActionTypes,
+  CategoriesListActionTypes,
   CreateCategorySuccessAction,
-  EditCategorySuccessAction,
 } from '../../action-types';
+import { useCategoryValidation } from '../../hooks';
+import { useHistory } from 'react-router-dom';
 
 interface CategoriesListItemProps extends StateToPropsMapResult, DispatchToPropsMapResult {
   data: CategoryItem;
@@ -28,19 +30,24 @@ const CategoriesListItem: React.FC<CategoriesListItemProps> = ({
   isCategoryOperationInProcess,
   isProductOperationInProcess,
   areProductsLoading,
+  productsFilter,
   setEditableForCategories,
   deleteDraftCategory,
   createCategory,
   editCategory,
   deleteCategory,
   getCategories,
+  getProducts,
 }: CategoriesListItemProps) => {
   const [categoryName, setCategoryName] = useState(category.name);
 
   const activeLinkClassName = useActiveLinkClassName();
+  const [isCategoryNameValid] = useCategoryValidation(categoryName);
+  const history = useHistory();
 
   const isEditable = editableCategoriesIds.find(id => id === category.id) !== undefined;
   const isAnySideEffectHappening = isCategoryOperationInProcess || isProductOperationInProcess || areProductsLoading;
+  const isConfirmEditDisabled = isAnySideEffectHappening || !isCategoryNameValid;
 
   const categoryProductsBadgeLabel = `${category.countProducts} ${
     category.countProducts === 1 ? 'product' : 'products'
@@ -57,31 +64,42 @@ const CategoriesListItem: React.FC<CategoriesListItemProps> = ({
 
   const handleDeleteItemClick = async (): Promise<void> => {
     const isDeleteConfirmed = window.confirm('Do you want to delete category?');
+
     if (isDeleteConfirmed) {
-      const deleteCategoryAction = await deleteCategory(category.id);
-      if (deleteCategoryAction as DeleteCategorySuccessAction) {
+      const { type: deleteCategoryActionType } = await deleteCategory(category.id);
+
+      if (deleteCategoryActionType === CategoriesOperationsActionTypes.DeleteSuccess) {
         await getCategories();
+        history.push('/categories');
       }
     }
   };
 
   const handleConfirmEditIconClick = async (): Promise<void> => {
-    const categoryForOperation: CategoryCreateEdit = {
-      id: category.id,
-      name: categoryName,
-    };
-
     if (category.id < 1) {
-      const createCategoryAction = await createCategory(categoryForOperation);
-      if (createCategoryAction as CreateCategorySuccessAction) {
+      const createCategoryAction = await createCategory({
+        name: categoryName.trim(),
+      });
+
+      if (createCategoryAction.type === CategoriesOperationsActionTypes.CreateSuccess) {
         deleteDraftCategory(category.id);
-        await getCategories();
+        const { type: getCategoriesActionType } = await getCategories();
+
+        if (getCategoriesActionType === CategoriesListActionTypes.Success) {
+          const { createdCategoryId } = createCategoryAction as CreateCategorySuccessAction;
+          history.push(`/categories/${createdCategoryId}`);
+        }
       }
     } else {
-      const editCategoryAction = await editCategory(categoryForOperation);
-      if (editCategoryAction as EditCategorySuccessAction) {
+      const { type: editCategoryActionType } = await editCategory({
+        id: category.id,
+        name: categoryName.trim(),
+      });
+
+      if (editCategoryActionType === CategoriesOperationsActionTypes.EditSuccess) {
         setEditableForCategories([category.id], false);
         await getCategories();
+        await getProducts(productsFilter);
       }
     }
   };
@@ -111,7 +129,7 @@ const CategoriesListItem: React.FC<CategoriesListItemProps> = ({
               type="check"
               size="small"
               onClick={handleConfirmEditIconClick}
-              disabled={isAnySideEffectHappening}
+              disabled={isConfirmEditDisabled}
             ></Icon>
             <Icon
               type="close"

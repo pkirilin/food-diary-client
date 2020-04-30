@@ -1,6 +1,6 @@
 import React from 'react';
 import './MealsListItem.scss';
-import { MealItem } from '../../models';
+import { MealType, availableMeals } from '../../models';
 import Icon from '../Icon';
 import { BadgesContainer } from '../ContainerBlocks';
 import Badge from '../Badge';
@@ -10,23 +10,36 @@ import NotesTableConnected from '../NotesTable';
 import Loader from '../Loader';
 
 interface MealsListItemProps extends StateToPropsMapResult, DispatchToPropsMapResult {
-  data: MealItem;
+  mealType: MealType;
 }
 
 const MealsListItem: React.FC<MealsListItemProps> = ({
-  data: meal,
+  mealType,
   collapsedMeals,
-  setCollapsedForMeal,
   notesForMealFetchStates,
+  noteItems,
+  setCollapsedForMeal,
 }: MealsListItemProps) => {
-  const isCollapsed = collapsedMeals.includes(meal.type);
+  const isCollapsed = collapsedMeals.includes(mealType);
 
-  const currentMealFetchState = notesForMealFetchStates.filter(s => s.mealType === meal.type)[0];
+  const currentMealFetchState = notesForMealFetchStates.filter(s => s.mealType === mealType)[0];
   const isNotesTableLoading = currentMealFetchState && currentMealFetchState.loading;
 
+  const mealName = availableMeals.has(mealType) ? availableMeals.get(mealType) : 'Unknown meal';
+  const mealNotes = noteItems.filter(n => n.mealType === mealType);
+
+  const countNotes = mealNotes.length;
+  const countCalories = mealNotes.reduce((sum, note) => sum + note.calories, 0);
+
   const handleItemHeaderClick = (): void => {
-    setCollapsedForMeal(!isCollapsed, meal.type);
+    setCollapsedForMeal(!isCollapsed, mealType);
   };
+
+  const mealsListItemContentClassNames = ['meals-list-item__content'];
+
+  if (isCollapsed) {
+    mealsListItemContentClassNames.push('meals-list-item__content_collapsed');
+  }
 
   return (
     <div className="meals-list-item">
@@ -42,25 +55,23 @@ const MealsListItem: React.FC<MealsListItemProps> = ({
                 }
           }
         ></Icon>
-        <div className="meals-list-item__header__name">{meal.name}</div>
+        <div className="meals-list-item__header__name">{mealName}</div>
         <BadgesContainer>
-          <Badge label={`${meal.countNotes} ${meal.countNotes === 1 ? 'note' : 'notes'}`}></Badge>
-          <Badge label={`${meal.countCalories} cal`}></Badge>
+          <Badge label={`${countNotes} ${countNotes === 1 ? 'note' : 'notes'}`}></Badge>
+          <Badge label={`${countCalories} cal`}></Badge>
         </BadgesContainer>
       </div>
-      {!isCollapsed && (
-        <div className="meals-list-item__content">
-          <NoteInputConnected mealType={meal.type}></NoteInputConnected>
-          <div className="meals-list-item__content__notes">
-            {isNotesTableLoading && (
-              <div className="meals-list-item__content__notes__preloader">
-                <Loader label="Loading notes"></Loader>
-              </div>
-            )}
-            <NotesTableConnected mealType={meal.type}></NotesTableConnected>
-          </div>
+      <div className={mealsListItemContentClassNames.join(' ')}>
+        <NoteInputConnected mealType={mealType}></NoteInputConnected>
+        <div className="meals-list-item__content__notes">
+          {isNotesTableLoading && (
+            <div className="meals-list-item__content__notes__preloader">
+              <Loader label="Loading notes"></Loader>
+            </div>
+          )}
+          <NotesTableConnected mealType={mealType}></NotesTableConnected>
         </div>
-      )}
+      </div>
     </div>
   );
 };

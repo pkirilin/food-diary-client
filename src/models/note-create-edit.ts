@@ -1,9 +1,9 @@
-import { MealType } from './meal-item';
+import { MealType } from './meal-types';
 
 export interface NoteCreateEdit {
-  id: number;
   mealType: MealType;
   productId: number;
   pageId: number;
   productQuantity: number;
+  displayOrder: number;
 }

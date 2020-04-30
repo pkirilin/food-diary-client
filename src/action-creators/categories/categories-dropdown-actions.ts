@@ -4,7 +4,7 @@ import {
   GetCategoryDropdownItemsSuccessAction,
   GetCategoryDropdownItemsErrorAction,
 } from '../../action-types';
-import { CategoryDropdownItem } from '../../models';
+import { CategoryDropdownItem, CategoryDropdownSearchRequest } from '../../models';
 import { ActionCreator, Dispatch } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import { getCategoryDropdownItemsAsync } from '../../services';
@@ -34,22 +34,33 @@ const getCategoryDropdownItemsError = (error?: string): GetCategoryDropdownItems
 export const getCategoryDropdownItems: ActionCreator<ThunkAction<
   Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction>,
   CategoryDropdownItem[],
-  void,
+  CategoryDropdownSearchRequest,
   GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction
->> = () => {
+>> = (request: CategoryDropdownSearchRequest) => {
   return async (
     dispatch: Dispatch,
   ): Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction> => {
+    const baseErrorMessage = 'Failed to get categories';
     dispatch(getCategoryDropdownItemsRequest());
     try {
-      const response = await getCategoryDropdownItemsAsync();
-      if (!response.ok) {
-        return dispatch(getCategoryDropdownItemsError());
+      const response = await getCategoryDropdownItemsAsync(request);
+
+      if (response.ok) {
+        const categoryDropdownItems = await response.json();
+        return dispatch(getCategoryDropdownItemsSuccess(categoryDropdownItems));
       }
-      const categoryDropdownItems = await response.json();
-      return dispatch(getCategoryDropdownItemsSuccess(categoryDropdownItems));
+
+      switch (response.status) {
+        case 400:
+          return dispatch(getCategoryDropdownItemsError(`${baseErrorMessage}: wrong request data`));
+        case 500:
+          return dispatch(getCategoryDropdownItemsError(`${baseErrorMessage}: server error`));
+        default:
+          return dispatch(getCategoryDropdownItemsError(`${baseErrorMessage}: unknown response code`));
+      }
     } catch (error) {
-      return dispatch(getCategoryDropdownItemsError());
+      console.error(error);
+      return dispatch(getCategoryDropdownItemsError(baseErrorMessage));
     }
   };
 };

@@ -12,7 +12,10 @@ import { Input, Checkbox } from '../Controls';
 import Icon from '../Icon';
 import { DispatchToPropsMapResult, StateToPropsMapResult } from './PagesListItemConnected';
 import { PageItem } from '../../models';
-import { PagesOperationsActionTypes } from '../../action-types';
+import { PagesOperationsActionTypes, PagesListActionTypes, CreatePageSuccessAction } from '../../action-types';
+import { getFormattedDate } from '../../utils/date-utils';
+import { usePageValidation } from '../../hooks';
+import { useHistory } from 'react-router-dom';
 
 interface PagesListItemProps extends StateToPropsMapResult, DispatchToPropsMapResult {
   data: PageItem;
@@ -35,11 +38,14 @@ const PagesListItem: React.FC<PagesListItemProps> = ({
   areNotesForMealLoading,
 }: PagesListItemProps) => {
   const [selectedDate, setSelectedDate] = useState(page.date);
+  const [isPageDateValid] = usePageValidation(selectedDate);
+  const history = useHistory();
 
   const isEditable = editablePagesIds.some(id => page.id === id);
   const isSelected = selectedPagesIds.some(id => page.id === id);
   const isAnySideEffectHappening =
     isPageOperationInProcess || isNoteOperationInProcess || areNotesForMealLoading || areNotesForPageLoading;
+  const isConfirmEditDisabled = isAnySideEffectHappening || !isPageDateValid;
 
   const handleSelectedDateChange = (event: React.ChangeEvent): void => {
     const target = event.target as HTMLInputElement;
@@ -51,14 +57,27 @@ const PagesListItem: React.FC<PagesListItemProps> = ({
   const handleConfirmEditPageIconClick = async (): Promise<void> => {
     if (page.id < 1) {
       // This is a draft page for create
-      const createPageAction = await createPage({ id: page.id, date: selectedDate });
+      const createPageAction = await createPage({
+        date: selectedDate,
+      });
+
       if (createPageAction.type === PagesOperationsActionTypes.CreateSuccess) {
         deleteDraftPage(page.id);
-        await getPages(pagesFilter);
+
+        const { type: getPagesActionType } = await getPages(pagesFilter);
+
+        if (getPagesActionType === PagesListActionTypes.Success) {
+          const { createdPageId } = createPageAction as CreatePageSuccessAction;
+          history.push(`/pages/${createdPageId}`);
+        }
       }
     } else {
       // This is existing page for edit
-      const editPageAction = await editPage(page);
+      const editPageAction = await editPage({
+        id: page.id,
+        date: selectedDate,
+      });
+
       if (editPageAction.type === PagesOperationsActionTypes.EditSuccess) {
         setEditableForPages([page.id], false);
         await getPages(pagesFilter);
@@ -102,7 +121,7 @@ const PagesListItem: React.FC<PagesListItemProps> = ({
               type="check"
               size="small"
               onClick={handleConfirmEditPageIconClick}
-              disabled={isAnySideEffectHappening}
+              disabled={isConfirmEditDisabled}
             ></Icon>
             <Icon
               type="close"
@@ -115,7 +134,7 @@ const PagesListItem: React.FC<PagesListItemProps> = ({
       ) : (
         <SidebarListItem selected={isSelected}>
           <SidebarListItemLink to={`/pages/${page.id}`} activeClassName={activeLinkClassName} selected={isSelected}>
-            <div>{page.date}</div>
+            <div>{getFormattedDate(page.date)}</div>
             <BadgesContainer>
               <Badge label={notesBadgeLabel} selected={isSelected}></Badge>
               <Badge label={caloriesBadgeLabel} selected={isSelected}></Badge>

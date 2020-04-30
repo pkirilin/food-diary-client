@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { PageCreateEdit } from '../../models';
+import { PageCreateEdit, PageEditRequest } from '../../models';
 
 export enum PagesOperationsActionTypes {
   CreateRequest = 'PAGES_OPERATIONS__CREATE_REQUEST',
@@ -23,6 +23,7 @@ export interface CreatePageRequestAction extends Action<PagesOperationsActionTyp
 
 export interface CreatePageSuccessAction extends Action<PagesOperationsActionTypes.CreateSuccess> {
   type: PagesOperationsActionTypes.CreateSuccess;
+  createdPageId: number;
 }
 
 export interface CreatePageErrorAction extends Action<PagesOperationsActionTypes.CreateError> {
@@ -32,7 +33,7 @@ export interface CreatePageErrorAction extends Action<PagesOperationsActionTypes
 
 export interface EditPageRequestAction extends Action<PagesOperationsActionTypes.EditRequest> {
   type: PagesOperationsActionTypes.EditRequest;
-  page: PageCreateEdit;
+  request: PageEditRequest;
   operationMessage: string;
 }
 

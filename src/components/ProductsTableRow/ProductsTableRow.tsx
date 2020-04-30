@@ -4,8 +4,8 @@ import { ProductItem } from '../../models';
 import Icon from '../Icon';
 import { StateToPropsMapResult, DispatchToPropsMapResult } from './ProductsTableRowConnected';
 import { Input, DropdownList, categoryDropdownItemRenderer } from '../Controls';
-import { DeleteProductSuccessAction, EditProductSuccessAction } from '../../action-types';
-import { useDebounce } from '../../hooks';
+import { ProductsOperationsActionTypes } from '../../action-types';
+import { useDebounce, useProductValidation } from '../../hooks';
 
 interface ProductsTableRowProps extends StateToPropsMapResult, DispatchToPropsMapResult {
   product: ProductItem;
@@ -21,6 +21,7 @@ const ProductsTableRow: React.FC<ProductsTableRowProps> = ({
   setEditableForProduct,
   getProducts,
   getCategoryDropdownItems,
+  getCategories,
   editProduct,
   deleteProduct,
 }: ProductsTableRowProps) => {
@@ -29,14 +30,22 @@ const ProductsTableRow: React.FC<ProductsTableRowProps> = ({
   const [categoryId, setCategoryId] = useState(product.categoryId);
   const [categoryNameInputValue, setCategoryNameInputValue] = useState(product.categoryName);
 
+  const [isProductNameValid, isCaloriesCostValid, isCategoryNameValid] = useProductValidation(
+    productNameInputValue,
+    caloriesCost,
+    categoryNameInputValue,
+  );
+
   const isProductEditable = editableProductsIds.find(id => id === product.id) !== undefined;
 
-  const isAnyInputValueEmpty = productNameInputValue === '' || caloriesCost < 1 || categoryId < 1;
   const isInputDisabled = isProductOperationInProcess;
-  const isConfirmEditIconDisabled = isInputDisabled || isAnyInputValueEmpty;
+  const isConfirmEditIconDisabled =
+    isInputDisabled || !isProductNameValid || !isCaloriesCostValid || !isCategoryNameValid;
 
-  const categoryNameChangeDebounce = useDebounce(() => {
-    getCategoryDropdownItems();
+  const categoryNameChangeDebounce = useDebounce((newCategoryName?: string) => {
+    getCategoryDropdownItems({
+      categoryNameFilter: newCategoryName,
+    });
   });
 
   const handleProductNameChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -58,11 +67,13 @@ const ProductsTableRow: React.FC<ProductsTableRowProps> = ({
 
   const handleCategoryNameDropdownInputChange = (newCategoryNameInputValue: string): void => {
     setCategoryNameInputValue(newCategoryNameInputValue);
-    categoryNameChangeDebounce();
+    categoryNameChangeDebounce(newCategoryNameInputValue);
   };
 
   const handleCategoryDropdownContentOpen = (): void => {
-    getCategoryDropdownItems();
+    getCategoryDropdownItems({
+      categoryNameFilter: categoryNameInputValue,
+    });
   };
 
   const handleEditIconClick = (): void => {
@@ -70,14 +81,14 @@ const ProductsTableRow: React.FC<ProductsTableRowProps> = ({
   };
 
   const handleConfirmEditIconClick = async (): Promise<void> => {
-    const editProductAction = await editProduct({
+    const { type: editProductActionType } = await editProduct({
       id: product.id,
-      name: productNameInputValue,
+      name: productNameInputValue.trim(),
       caloriesCost,
       categoryId,
     });
 
-    if (editProductAction as EditProductSuccessAction) {
+    if (editProductActionType === ProductsOperationsActionTypes.EditSuccess) {
       setEditableForProduct(product.id, false);
       await getProducts(productsFilter);
     }
@@ -93,10 +104,13 @@ const ProductsTableRow: React.FC<ProductsTableRowProps> = ({
 
   const handleDeleteIconClick = async (): Promise<void> => {
     const isDeleteConfirmed = window.confirm('Do you want to delete product?');
+
     if (isDeleteConfirmed) {
-      const deleteProductAction = await deleteProduct(product.id);
-      if (deleteProductAction as DeleteProductSuccessAction) {
+      const { type: deleteProductActionType } = await deleteProduct(product.id);
+
+      if (deleteProductActionType === ProductsOperationsActionTypes.DeleteSuccess) {
         await getProducts(productsFilter);
+        await getCategories();
       }
     }
   };

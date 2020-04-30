@@ -17,17 +17,19 @@ const productsTableColumns = [
 ];
 
 const ProductsTable: React.FC<ProductsTableProps> = ({
-  isProductsTableLoading,
+  productItemsFetchState,
   isProductOperationInProcess,
   productItems,
   productItemsPageSize,
   productsFilter,
+  totalProductsCount,
   updateProductsFilter,
   getProducts,
 }: ProductsTableProps) => {
-  const totalPagesCount = Math.ceil(productItems.length / productItemsPageSize);
+  const totalPagesCount = Math.ceil(totalProductsCount / productItemsPageSize);
 
-  const isPaginationDisabled = isProductsTableLoading || isProductOperationInProcess;
+  const { loading: isProductsTableLoading, error: productsListError } = productItemsFetchState;
+  const isPaginationDisabled = isProductsTableLoading || isProductOperationInProcess || productsListError !== undefined;
 
   const handlePageNumberUpdate = (newPageNumber?: number): void => {
     if (newPageNumber !== productsFilter.pageNumber) {
@@ -59,7 +61,11 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
           </div>
         )}
         <div className="products-table">
-          <Table columns={productsTableColumns} rows={mapProductItemsToTableRows()}></Table>
+          <Table
+            columns={productsTableColumns}
+            rows={mapProductItemsToTableRows()}
+            dataErrorMessage={productsListError}
+          ></Table>
         </div>
       </div>
       <Pagination

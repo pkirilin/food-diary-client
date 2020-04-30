@@ -8,6 +8,7 @@ const initialState: ProductsListState = {
     loaded: false,
   },
   editableProductsIds: [],
+  totalProductsCount: 0,
 };
 
 const productsListReducer = (
@@ -19,7 +20,6 @@ const productsListReducer = (
       return {
         ...state,
         productItemsFetchState: {
-          ...state.productItemsFetchState,
           loading: true,
           loaded: false,
         },
@@ -29,16 +29,15 @@ const productsListReducer = (
         ...state,
         productItems: action.productItems,
         productItemsFetchState: {
-          ...state.productItemsFetchState,
           loading: false,
           loaded: true,
         },
+        totalProductsCount: action.totalProductsCount,
       };
     case ProductsListActionTypes.Error:
       return {
         ...state,
         productItemsFetchState: {
-          ...state.productItemsFetchState,
           loading: false,
           loaded: false,
           error: action.errorMessage,

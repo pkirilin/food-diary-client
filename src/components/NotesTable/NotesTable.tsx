@@ -17,25 +17,29 @@ const notesTableColumns = [
   <TableColumn key="Delete" name="" width="35px"></TableColumn>,
 ];
 
-const NotesTable: React.FC<NotesTableProps> = ({ mealType, notesForPageData }: NotesTableProps) => {
+const NotesTable: React.FC<NotesTableProps> = ({ mealType, noteItems, notesForMealFetchStates }: NotesTableProps) => {
   const mapNoteItemsToTableRows = (): JSX.Element[] => {
     const rows: JSX.Element[] = [];
+    const notesForMeal = noteItems.filter(n => n.mealType === mealType);
 
-    if (notesForPageData) {
-      const meal = notesForPageData.meals.find(m => m.type === mealType);
-      if (meal) {
-        meal.notes.forEach(note => {
-          rows.push(<NotesTableRowConnected mealType={mealType} note={note}></NotesTableRowConnected>);
-        });
-      }
-    }
+    notesForMeal.forEach(note => {
+      rows.push(<NotesTableRowConnected mealType={mealType} note={note}></NotesTableRowConnected>);
+    });
 
     return rows;
   };
 
+  const targetMealFetchState = notesForMealFetchStates.find(s => s.mealType === mealType);
+
+  if (!targetMealFetchState) {
+    return null;
+  }
+
+  const { error } = targetMealFetchState;
+
   return (
     <div className="notes-table">
-      <Table columns={notesTableColumns} rows={mapNoteItemsToTableRows()}></Table>
+      <Table columns={notesTableColumns} rows={mapNoteItemsToTableRows()} dataErrorMessage={error}></Table>
     </div>
   );
 };

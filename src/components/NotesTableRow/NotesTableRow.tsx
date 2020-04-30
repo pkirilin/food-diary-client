@@ -4,9 +4,9 @@ import { MealType, NoteItem } from '../../models';
 import { productDropdownItemRenderer, Input, DropdownList } from '../Controls';
 import { StateToPropsMapResult, DispatchToPropsMapResult } from './NotesTableRowConnected';
 import Icon from '../Icon';
-import { EditNoteSuccessAction, DeleteNoteSuccessAction } from '../../action-types';
+import { NotesOperationsActionTypes } from '../../action-types';
 import { useParams } from 'react-router-dom';
-import { useDebounce } from '../../hooks';
+import { useDebounce, useNoteValidation } from '../../hooks';
 
 interface NotesTableRowProps extends StateToPropsMapResult, DispatchToPropsMapResult {
   mealType: MealType;
@@ -21,18 +21,23 @@ const NotesTableRow: React.FC<NotesTableRowProps> = ({
   mealOperationStatuses,
   isProductDropdownContentLoading,
   isPageOperationInProcess,
+  pagesFilter,
   setEditableForNote,
   editNote,
   deleteNote,
   getNotesForMeal,
   getProductDropdownItems,
+  getPages,
 }: NotesTableRowProps) => {
   const [productId, setProductId] = useState(note.productId);
   const [productNameInputValue, setProductNameInputValue] = useState(note.productName);
   const [productQuantity, setProductQuantity] = useState(note.productQuantity);
+  const [isProductNameValid, isProductQuantityValid] = useNoteValidation(productNameInputValue, productQuantity);
 
   const productNameChangeDebounce = useDebounce(() => {
-    getProductDropdownItems();
+    getProductDropdownItems({
+      productNameFilter: productNameInputValue,
+    });
   });
 
   const { id: pageIdFromParams } = useParams();
@@ -43,6 +48,7 @@ const NotesTableRow: React.FC<NotesTableRowProps> = ({
   const isNoteEditable = editableNotesIds.find(id => id === note.id) !== undefined;
   const isMealOperationInProcess = currentMealOperationStatus && currentMealOperationStatus.performing;
   const isInputDisabled = isMealOperationInProcess || isPageOperationInProcess;
+  const isConfirmEditIconDisabled = isInputDisabled || !isProductQuantityValid || !isProductNameValid;
 
   const handleProductDropdownItemSelect = (newSelectedProductIndex: number): void => {
     setProductId(productDropdownItems[newSelectedProductIndex].id);
@@ -65,25 +71,34 @@ const NotesTableRow: React.FC<NotesTableRowProps> = ({
   };
 
   const handleConfirmEditIconClick = async (): Promise<void> => {
-    const editNoteAction = await editNote({
+    const { type: editNoteActionType } = await editNote({
       id: note.id,
       mealType,
       productId,
       pageId,
       productQuantity,
+      displayOrder: note.displayOrder,
     });
-    if (editNoteAction as EditNoteSuccessAction) {
+
+    if (editNoteActionType === NotesOperationsActionTypes.EditSuccess) {
       setEditableForNote(note.id, false);
       await getNotesForMeal({ pageId, mealType });
+      await getPages(pagesFilter);
     }
   };
 
   const handleDeleteIconClick = async (): Promise<void> => {
     const isDeleteConfirmed = window.confirm('Do you want to delete note?');
+
     if (isDeleteConfirmed) {
-      const deleteNoteAction = await deleteNote([note.id, mealType]);
-      if (deleteNoteAction as DeleteNoteSuccessAction) {
+      const { type: deleteNoteActionType } = await deleteNote({
+        id: note.id,
+        mealType,
+      });
+
+      if (deleteNoteActionType === NotesOperationsActionTypes.DeleteSuccess) {
         await getNotesForMeal({ pageId, mealType });
+        await getPages(pagesFilter);
       }
     }
   };
@@ -96,7 +111,9 @@ const NotesTableRow: React.FC<NotesTableRowProps> = ({
   };
 
   const handleProductDropdownContentOpen = (): void => {
-    getProductDropdownItems();
+    getProductDropdownItems({
+      productNameFilter: productNameInputValue,
+    });
   };
 
   return (
@@ -138,7 +155,7 @@ const NotesTableRow: React.FC<NotesTableRowProps> = ({
         <Icon
           type={isNoteEditable ? 'check' : 'edit'}
           size="small"
-          disabled={isInputDisabled}
+          disabled={isNoteEditable ? isConfirmEditIconDisabled : isInputDisabled}
           onClick={isNoteEditable ? handleConfirmEditIconClick : handleEditIconClick}
         ></Icon>
       </td>

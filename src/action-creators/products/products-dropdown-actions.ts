@@ -1,6 +1,6 @@
 import { ActionCreator, Dispatch } from 'redux';
 import { ThunkAction } from 'redux-thunk';
-import { ProductDropdownItem } from '../../models';
+import { ProductDropdownItem, ProductDropdownSearchRequest } from '../../models';
 import {
   GetProductDropdownItemsSuccessAction,
   GetProductDropdownItemsErrorAction,
@@ -34,23 +34,33 @@ const getProductDropdownItemsError = (error?: string): GetProductDropdownItemsEr
 export const getProductDropdownItems: ActionCreator<ThunkAction<
   Promise<GetProductDropdownItemsSuccessAction | GetProductDropdownItemsErrorAction>,
   ProductDropdownItem[],
-  void,
+  ProductDropdownSearchRequest,
   GetProductDropdownItemsSuccessAction | GetProductDropdownItemsErrorAction
->> = () => {
+>> = (request: ProductDropdownSearchRequest) => {
   return async (
     dispatch: Dispatch,
   ): Promise<GetProductDropdownItemsSuccessAction | GetProductDropdownItemsErrorAction> => {
+    const baseErrorMessage = 'Failed to get products';
     dispatch(getProductDropdownItemsRequest());
-
     try {
-      const response = await getProductDropdownItemsAsync();
-      if (!response.ok) {
-        return dispatch(getProductDropdownItemsError());
+      const response = await getProductDropdownItemsAsync(request);
+
+      if (response.ok) {
+        const productDropdownItems = await response.json();
+        return dispatch(getProductDropdownItemsSuccess(productDropdownItems));
       }
-      const productDropdownItems = await response.json();
-      return dispatch(getProductDropdownItemsSuccess(productDropdownItems));
+
+      switch (response.status) {
+        case 400:
+          return dispatch(getProductDropdownItemsError(`${baseErrorMessage}: wrong request data`));
+        case 500:
+          return dispatch(getProductDropdownItemsError(`${baseErrorMessage}: server error`));
+        default:
+          return dispatch(getProductDropdownItemsError(`${baseErrorMessage}: unknown response code`));
+      }
     } catch (error) {
-      return dispatch(getProductDropdownItemsError());
+      console.error(error);
+      return dispatch(getProductDropdownItemsError(baseErrorMessage));
     }
   };
 };

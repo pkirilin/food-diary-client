@@ -6,7 +6,7 @@ import { MealType } from '../../models';
 import { useParams } from 'react-router-dom';
 import Loader from '../Loader';
 import { NotesOperationsActionTypes } from '../../action-types';
-import { useDebounce } from '../../hooks';
+import { useDebounce, useNoteValidation } from '../../hooks';
 
 interface NoteInputProps extends StateToPropsMapResult, DispatchToPropsMapResult {
   mealType: MealType;
@@ -17,18 +17,24 @@ const NoteInput: React.FC<NoteInputProps> = ({
   mealOperationStatuses,
   notesForMealFetchStates,
   productDropdownItems,
+  noteItems,
   isProductDropdownContentLoading,
   isPageOperationInProcess,
+  pagesFilter,
   createNote,
   getNotesForMeal,
   getProductDropdownItems,
+  getPages,
 }: NoteInputProps) => {
   const [productId, setProductId] = useState(0);
   const [productNameInputValue, setProductNameInputValue] = useState('');
   const [productQuantity, setProductQuantity] = useState(100);
+  const [isProductNameValid, isProductQuantityValid] = useNoteValidation(productNameInputValue, productQuantity);
 
-  const productNameChangeDebounce = useDebounce(() => {
-    getProductDropdownItems();
+  const productNameChangeDebounce = useDebounce((newProductName?: string) => {
+    getProductDropdownItems({
+      productNameFilter: newProductName,
+    });
   });
 
   const { id: pageIdFromParams } = useParams();
@@ -40,7 +46,7 @@ const NoteInput: React.FC<NoteInputProps> = ({
   const isMealOperationInProcess = currentMealOperationStatus && currentMealOperationStatus.performing;
   const isNotesTableLoading = currentMealFetchState && currentMealFetchState.loading;
   const isInputDisabled = isMealOperationInProcess || isNotesTableLoading || isPageOperationInProcess;
-  const isAddButtonDisabled = isInputDisabled || productNameInputValue === '' || isPageOperationInProcess;
+  const isAddButtonDisabled = isInputDisabled || !isProductNameValid || !isProductQuantityValid;
 
   const handleProductDropdownItemSelect = (newSelectedProductIndex: number): void => {
     setProductId(productDropdownItems[newSelectedProductIndex].id);
@@ -49,7 +55,7 @@ const NoteInput: React.FC<NoteInputProps> = ({
 
   const handleProductNameDropdownInputChange = (newProductNameInputValue: string): void => {
     setProductNameInputValue(newProductNameInputValue);
-    productNameChangeDebounce();
+    productNameChangeDebounce(newProductNameInputValue);
   };
 
   const handleQuantityValueChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -60,25 +66,33 @@ const NoteInput: React.FC<NoteInputProps> = ({
 
   const handleAddButtonClick = async (): Promise<void> => {
     const pageId = pageIdFromParams && !isNaN(+pageIdFromParams) ? +pageIdFromParams : 0;
+    const noteItemsForThisMeal = noteItems.filter(n => n.mealType === mealType);
+    const lastNoteDisplayOrder =
+      noteItemsForThisMeal.length > 0 ? noteItemsForThisMeal[noteItemsForThisMeal.length - 1].displayOrder : -1;
+
     const createNoteAction = await createNote({
-      id: 0,
       mealType,
       productId,
       productQuantity,
       pageId,
+      displayOrder: lastNoteDisplayOrder + 1,
     });
 
     if (createNoteAction.type === NotesOperationsActionTypes.CreateSuccess) {
+      setProductNameInputValue('');
+      setProductQuantity(100);
       await getNotesForMeal({
         pageId,
         mealType,
       });
-      setProductNameInputValue('');
+      await getPages(pagesFilter);
     }
   };
 
   const handleProductDropdownContentOpen = (): void => {
-    getProductDropdownItems();
+    getProductDropdownItems({
+      productNameFilter: productNameInputValue,
+    });
   };
 
   return (

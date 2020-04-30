@@ -8,17 +8,26 @@ import {
   GetProductsListErrorAction,
   GetCategoryDropdownItemsSuccessAction,
   GetCategoryDropdownItemsErrorAction,
+  GetCategoriesListSuccessAction,
+  GetCategoriesListErrorAction,
 } from '../../action-types';
 import { ThunkDispatch } from 'redux-thunk';
-import { ProductCreateEdit, ProductItem, CategoryDropdownItem, ProductsFilter, CategoryItem } from '../../models';
-import { createProduct, getProducts, getCategoryDropdownItems } from '../../action-creators';
+import {
+  ProductCreateEdit,
+  ProductItem,
+  CategoryDropdownItem,
+  ProductsFilter,
+  CategoryItem,
+  CategoryDropdownSearchRequest,
+} from '../../models';
+import { createProduct, getProducts, getCategoryDropdownItems, getCategories } from '../../action-creators';
 
 export interface StateToPropsMapResult {
   productOperationStatus: DataOperationState;
   productItemsFetchState: DataFetchState;
   categoryItems: CategoryItem[];
   categoryDropdownItems: CategoryDropdownItem[];
-  isCategoryDropdownContentLoading: boolean;
+  categoryDropdownItemsFetchState: DataFetchState;
   productsFilter: ProductsFilter;
 }
 
@@ -28,7 +37,7 @@ const mapStateToProps = (state: FoodDiaryState): StateToPropsMapResult => {
     productItemsFetchState: state.products.list.productItemsFetchState,
     categoryItems: state.categories.list.categoryItems,
     categoryDropdownItems: state.categories.dropdown.categoryDropdownItems,
-    isCategoryDropdownContentLoading: state.categories.dropdown.categoryDropdownItemsFetchState.loading,
+    categoryDropdownItemsFetchState: state.categories.dropdown.categoryDropdownItemsFetchState,
     productsFilter: state.products.filter,
   };
 };
@@ -36,7 +45,10 @@ const mapStateToProps = (state: FoodDiaryState): StateToPropsMapResult => {
 export interface DispatchToPropsMapResult {
   createProduct: (product: ProductCreateEdit) => Promise<CreateProductSuccessAction | CreateProductErrorAction>;
   getProducts: (productsFilter: ProductsFilter) => Promise<GetProductsListSuccessAction | GetProductsListErrorAction>;
-  getCategoryDropdownItems: () => Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction>;
+  getCategoryDropdownItems: (
+    request: CategoryDropdownSearchRequest,
+  ) => Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction>;
+  getCategories: () => Promise<GetCategoriesListSuccessAction | GetCategoriesListErrorAction>;
 }
 
 type ProductInputDispatch = ThunkDispatch<
@@ -44,12 +56,13 @@ type ProductInputDispatch = ThunkDispatch<
   ProductCreateEdit,
   CreateProductSuccessAction | CreateProductErrorAction
 > &
-  ThunkDispatch<ProductItem, ProductsFilter, GetProductsListSuccessAction | GetProductsListErrorAction> &
+  ThunkDispatch<ProductItem[], ProductsFilter, GetProductsListSuccessAction | GetProductsListErrorAction> &
   ThunkDispatch<
     CategoryDropdownItem[],
-    void,
+    CategoryDropdownSearchRequest,
     GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction
-  >;
+  > &
+  ThunkDispatch<CategoryItem[], void, GetCategoriesListSuccessAction | GetCategoriesListErrorAction>;
 
 const mapDispatchToProps = (dispatch: ProductInputDispatch): DispatchToPropsMapResult => {
   return {
@@ -61,10 +74,13 @@ const mapDispatchToProps = (dispatch: ProductInputDispatch): DispatchToPropsMapR
     ): Promise<GetProductsListSuccessAction | GetProductsListErrorAction> => {
       return dispatch(getProducts(productsFilter));
     },
-    getCategoryDropdownItems: (): Promise<
-      GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction
-    > => {
-      return dispatch(getCategoryDropdownItems());
+    getCategoryDropdownItems: (
+      request: CategoryDropdownSearchRequest,
+    ): Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction> => {
+      return dispatch(getCategoryDropdownItems(request));
+    },
+    getCategories: (): Promise<GetCategoriesListSuccessAction | GetCategoriesListErrorAction> => {
+      return dispatch(getCategories());
     },
   };
 };
