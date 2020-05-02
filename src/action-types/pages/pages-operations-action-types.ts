@@ -1,5 +1,6 @@
-import { Action } from 'redux';
+import { Action, ActionCreator } from 'redux';
 import { PageCreateEdit, PageEditRequest } from '../../models';
+import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 
 export enum PagesOperationsActionTypes {
   CreateRequest = 'PAGES_OPERATIONS__CREATE_REQUEST',
@@ -60,10 +61,51 @@ export interface DeletePagesErrorAction extends Action<PagesOperationsActionType
   error: string;
 }
 
-type CreatePageActions = CreatePageRequestAction | CreatePageSuccessAction | CreatePageErrorAction;
+export type CreatePageActions = CreatePageRequestAction | CreatePageSuccessAction | CreatePageErrorAction;
 
-type EditPageActions = EditPageRequestAction | EditPageSuccessAction | EditPageErrorAction;
+export type EditPageActions = EditPageRequestAction | EditPageSuccessAction | EditPageErrorAction;
 
-type DeletePagesActions = DeletePagesRequestAction | DeletePagesSuccessAction | DeletePagesErrorAction;
+export type DeletePagesActions = DeletePagesRequestAction | DeletePagesSuccessAction | DeletePagesErrorAction;
 
 export type PagesOperationsActions = CreatePageActions | EditPageActions | DeletePagesActions;
+
+export type CreatePageActionCreator = ActionCreator<
+  ThunkAction<
+    Promise<CreatePageSuccessAction | CreatePageErrorAction>,
+    void,
+    PageCreateEdit,
+    CreatePageSuccessAction | CreatePageErrorAction
+  >
+>;
+
+export type EditPageActionCreator = ActionCreator<
+  ThunkAction<
+    Promise<EditPageSuccessAction | EditPageErrorAction>,
+    void,
+    PageEditRequest,
+    EditPageSuccessAction | EditPageErrorAction
+  >
+>;
+
+export type DeletePagesActionCreator = ActionCreator<
+  ThunkAction<
+    Promise<DeletePagesSuccessAction | DeletePagesErrorAction>,
+    void,
+    number[],
+    DeletePagesSuccessAction | DeletePagesErrorAction
+  >
+>;
+
+export type CreatePageDispatch = ThunkDispatch<void, PageCreateEdit, CreatePageSuccessAction | CreatePageErrorAction>;
+
+export type EditPageDispatch = ThunkDispatch<void, PageEditRequest, EditPageSuccessAction | EditPageErrorAction>;
+
+export type DeletePagesDispatch = ThunkDispatch<void, number[], DeletePagesSuccessAction | DeletePagesErrorAction>;
+
+export type CreatePageDispatchProp = (page: PageCreateEdit) => Promise<CreatePageSuccessAction | CreatePageErrorAction>;
+
+export type EditPageDispatchProp = (request: PageEditRequest) => Promise<EditPageSuccessAction | EditPageErrorAction>;
+
+export type DeletePagesDispatchProp = (
+  pagesIds: number[],
+) => Promise<DeletePagesSuccessAction | DeletePagesErrorAction>;
