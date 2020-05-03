@@ -7,7 +7,7 @@ const notesApiUrl = `${API_URL}/v1/notes`;
 export const getNotesAsync = async ({ pageId, mealType }: NotesSearchRequest): Promise<Response> => {
   let requestUrl = `${notesApiUrl}?pageId=${pageId}`;
 
-  if (mealType !== undefined) {
+  if (mealType) {
     requestUrl += `&mealType=${mealType}`;
   }
 
@@ -29,7 +29,7 @@ export const createNoteAsync = async (note: NoteCreateEdit): Promise<Response> =
   });
 };
 
-export const editNoteAsync = async ({ id, ...note }: NoteEditRequest): Promise<Response> => {
+export const editNoteAsync = async ({ id, note }: NoteEditRequest): Promise<Response> => {
   return await fetch(`${notesApiUrl}/${id}`, {
     method: 'PUT',
     headers: {

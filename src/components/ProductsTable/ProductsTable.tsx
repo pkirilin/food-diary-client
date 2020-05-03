@@ -6,7 +6,9 @@ import ProductsTableRowConnected from '../ProductsTableRow';
 import Loader from '../Loader';
 import Pagination from '../Pagination';
 
-interface ProductsTableProps extends ProductsTableStateToPropsMapResult, ProductsTableDispatchToPropsMapResult {}
+interface ProductsTableProps extends ProductsTableStateToPropsMapResult, ProductsTableDispatchToPropsMapResult {
+  refreshCategoriesOnDeleteProduct?: boolean;
+}
 
 const productsTableColumns = [
   <TableColumn key="Product name" name="Product name" width="50%"></TableColumn>,
@@ -17,6 +19,7 @@ const productsTableColumns = [
 ];
 
 const ProductsTable: React.FC<ProductsTableProps> = ({
+  refreshCategoriesOnDeleteProduct = false,
   productItemsFetchState,
   isProductOperationInProcess,
   productItems,
@@ -28,8 +31,8 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
 }: ProductsTableProps) => {
   const totalPagesCount = Math.ceil(totalProductsCount / productItemsPageSize);
 
-  const { loading: isProductsTableLoading, error: productsListError } = productItemsFetchState;
-  const isPaginationDisabled = isProductsTableLoading || isProductOperationInProcess || productsListError !== undefined;
+  const { loading: isProductsTableLoading, error: productsListError, loadingMessage } = productItemsFetchState;
+  const isPaginationDisabled = isProductsTableLoading || isProductOperationInProcess || !!productsListError;
 
   const handlePageNumberUpdate = (newPageNumber?: number): void => {
     if (newPageNumber !== productsFilter.pageNumber) {
@@ -43,7 +46,12 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
   const mapProductItemsToTableRows = (): JSX.Element[] => {
     const rows: JSX.Element[] = [];
     productItems.forEach(product => {
-      rows.push(<ProductsTableRowConnected product={product}></ProductsTableRowConnected>);
+      rows.push(
+        <ProductsTableRowConnected
+          product={product}
+          refreshCategoriesOnDeleteProduct={refreshCategoriesOnDeleteProduct}
+        ></ProductsTableRowConnected>,
+      );
     });
     return rows;
   };
@@ -57,7 +65,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
       <div className="products">
         {isProductsTableLoading && (
           <div className="products__preloader">
-            <Loader label="Loading products list"></Loader>
+            <Loader label={loadingMessage}></Loader>
           </div>
         )}
         <div className="products-table">

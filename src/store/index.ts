@@ -9,10 +9,8 @@ const store = createStore(rootReducer, initialState, applyMiddleware(thunkMiddle
 
 export default store;
 
-export * from './state';
-export * from './data-fetch-state';
-export * from './data-operation-state';
-
+export * from './common';
+export * from './root-state';
 export * from './pages-state';
 export * from './notes-state';
 export * from './meals-state';

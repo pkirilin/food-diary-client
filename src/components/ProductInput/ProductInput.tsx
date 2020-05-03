@@ -6,9 +6,12 @@ import { ProductInputStateToPropsMapResult, ProductInputDispatchToPropsMapResult
 import { ProductsOperationsActionTypes } from '../../action-types';
 import { useDebounce, useProductValidation } from '../../hooks';
 
-interface ProductInputProps extends ProductInputStateToPropsMapResult, ProductInputDispatchToPropsMapResult {}
+interface ProductInputProps extends ProductInputStateToPropsMapResult, ProductInputDispatchToPropsMapResult {
+  refreshCategoriesOnCreateProduct?: boolean;
+}
 
 const ProductInput: React.FC<ProductInputProps> = ({
+  refreshCategoriesOnCreateProduct = false,
   productOperationStatus,
   productItemsFetchState,
   categoryItems,
@@ -30,6 +33,7 @@ const ProductInput: React.FC<ProductInputProps> = ({
   const {
     loading: isCategoryDropdownContentLoading,
     error: categoryDropdownContentErrorMessage,
+    loadingMessage: categoryDropdownContentLoadingMessage,
   } = categoryDropdownItemsFetchState;
 
   const [isProductNameValid, isCaloriesCostValid, isCategoryNameValid] = useProductValidation(
@@ -42,7 +46,7 @@ const ProductInput: React.FC<ProductInputProps> = ({
   const isAddButtonDisabled = isInputDisabled || !isProductNameValid || !isCaloriesCostValid || !isCategoryNameValid;
 
   const setCategoryInputByFilter = (): void => {
-    if (productsFilter.categoryId !== undefined) {
+    if (productsFilter.categoryId) {
       const currentSelectedCategory = categoryItems.find(c => c.id === productsFilter.categoryId);
       if (currentSelectedCategory) {
         setCategoryId(currentSelectedCategory.id);
@@ -117,7 +121,10 @@ const ProductInput: React.FC<ProductInputProps> = ({
       setCaloriesCost(100);
       setCategoryInputByFilter();
       await getProducts(productsFilter);
-      await getCategories();
+
+      if (refreshCategoriesOnCreateProduct) {
+        await getCategories();
+      }
     }
   };
 
@@ -157,8 +164,9 @@ const ProductInput: React.FC<ProductInputProps> = ({
             searchable={true}
             inputValue={categoryNameInputValue}
             isContentLoading={isCategoryDropdownContentLoading}
-            disabled={isInputDisabled}
+            contentLoadingMessage={categoryDropdownContentLoadingMessage}
             contentErrorMessage={categoryDropdownContentErrorMessage}
+            disabled={isInputDisabled}
             onValueSelect={handleCategoryDropdownItemSelect}
             onInputValueChange={handleCategoryNameDropdownInputChange}
             onContentOpen={handleCategoryDropdownContentOpen}

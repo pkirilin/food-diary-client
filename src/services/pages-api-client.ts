@@ -6,7 +6,7 @@ const pagesApiClientUrl = `${API_URL}/v1/pages`;
 export const getPagesAsync = async ({ sortOrder, showCount }: PagesFilter): Promise<Response> => {
   let requestUrl = `${pagesApiClientUrl}?sortOrder=${sortOrder}`;
 
-  if (showCount !== undefined) {
+  if (showCount) {
     requestUrl += `&showCount=${showCount}`;
   }
 
@@ -28,7 +28,7 @@ export const createPageAsync = async (page: PageCreateEdit): Promise<Response> =
   });
 };
 
-export const editPageAsync = async ({ id, ...page }: PageEditRequest): Promise<Response> => {
+export const editPageAsync = async ({ id, page }: PageEditRequest): Promise<Response> => {
   return await fetch(`${pagesApiClientUrl}/${id}`, {
     method: 'PUT',
     headers: {

@@ -25,6 +25,7 @@ interface DropdownListProps<T = string> extends DropdownPropsBase {
   searchable?: boolean;
   inputValue?: string;
   isContentLoading?: boolean;
+  contentLoadingMessage?: string;
   contentErrorMessage?: string;
   onValueSelect?: (newSelectedValueIndex: number) => void;
   onInputValueChange?: (newInputValue: string) => void;
@@ -43,6 +44,7 @@ function DropdownList<T = string>({
   controlSize,
   inputValue = '',
   isContentLoading = false,
+  contentLoadingMessage = 'Fetching elements',
   contentErrorMessage,
   onValueSelect,
   onInputValueChange,
@@ -179,10 +181,10 @@ function DropdownList<T = string>({
       )}
 
       <div ref={contentRef} className={contentClassNames.join(' ')} style={contentStyle}>
-        {contentErrorMessage === undefined ? (
+        {!contentErrorMessage ? (
           isContentLoading ? (
             <div className="dropdown__content_loading">
-              <Loader label="Fetching elements..." size="small"></Loader>
+              <Loader label={contentLoadingMessage} size="small"></Loader>
             </div>
           ) : items.length === 0 ? (
             <div className="dropdown__content_empty">No elements found</div>

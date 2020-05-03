@@ -5,8 +5,9 @@ import {
   PagesListControlsBottomDispatchToPropsMapResult,
   PagesListControlsBottomStateToPropsMapResult,
 } from './PagesListControlsBottomConnected';
-import { SortOrder, ShowCount, invertSortOrder, showCountAllString } from '../../models';
+import { SortOrder, ShowCount } from '../../models';
 import Icon from '../Icon';
+import { showCountAllString, invertSortOrder } from '../../utils/filter-utils';
 
 interface PagesListControlsBottomProps
   extends PagesListControlsBottomStateToPropsMapResult,
@@ -41,7 +42,7 @@ const PagesListControlsBottom: React.FC<PagesListControlsBottomProps> = ({
     isNoteOperationInProcess;
 
   useEffect(() => {
-    setShowCountInputValue(pagesFilter.showCount === undefined ? showCountAllString : pagesFilter.showCount.toString());
+    setShowCountInputValue(pagesFilter.showCount ? pagesFilter.showCount.toString() : showCountAllString);
   }, [pagesFilter]);
 
   const handleSortIconClick = (): void => {

@@ -3,10 +3,9 @@ import './NoteInput.scss';
 import { FormGroup, Label, Input, Button, productDropdownItemRenderer, DropdownList } from '../Controls';
 import { NoteInputStateToPropsMapResult, NoteInputDispatchToPropsMapResult } from './NoteInputConnected';
 import { MealType } from '../../models';
-import { useParams } from 'react-router-dom';
 import Loader from '../Loader';
 import { NotesOperationsActionTypes } from '../../action-types';
-import { useDebounce, useNoteValidation } from '../../hooks';
+import { useDebounce, useNoteValidation, useIdFromRoute } from '../../hooks';
 
 interface NoteInputProps extends NoteInputStateToPropsMapResult, NoteInputDispatchToPropsMapResult {
   mealType: MealType;
@@ -18,7 +17,7 @@ const NoteInput: React.FC<NoteInputProps> = ({
   notesForMealFetchStates,
   productDropdownItems,
   noteItems,
-  isProductDropdownContentLoading,
+  productDropdownItemsFetchState,
   isPageOperationInProcess,
   pagesFilter,
   createNote,
@@ -37,11 +36,18 @@ const NoteInput: React.FC<NoteInputProps> = ({
     });
   });
 
-  const { id: pageIdFromParams } = useParams();
+  const pageId = useIdFromRoute();
 
-  const currentMealOperationStatus = mealOperationStatuses.filter(s => s.mealType === mealType)[0];
-  const currentMealFetchState = notesForMealFetchStates.filter(s => s.mealType === mealType)[0];
+  const currentMealOperationStatus = mealOperationStatuses.find(s => s.mealType === mealType);
+  const currentMealFetchState = notesForMealFetchStates.find(s => s.mealType === mealType);
+
   const operationMessage = currentMealOperationStatus ? currentMealOperationStatus.message : '';
+
+  const {
+    loading: isProductDropdownContentLoading,
+    loadingMessage: productDropdownContentLoadingMessage,
+    error: productDropdownContentErrorMessage,
+  } = productDropdownItemsFetchState;
 
   const isMealOperationInProcess = currentMealOperationStatus && currentMealOperationStatus.performing;
   const isNotesTableLoading = currentMealFetchState && currentMealFetchState.loading;
@@ -65,7 +71,6 @@ const NoteInput: React.FC<NoteInputProps> = ({
   };
 
   const handleAddButtonClick = async (): Promise<void> => {
-    const pageId = pageIdFromParams && !isNaN(+pageIdFromParams) ? +pageIdFromParams : 0;
     const noteItemsForThisMeal = noteItems.filter(n => n.mealType === mealType);
     const lastNoteDisplayOrder =
       noteItemsForThisMeal.length > 0 ? noteItemsForThisMeal[noteItemsForThisMeal.length - 1].displayOrder : -1;
@@ -107,6 +112,8 @@ const NoteInput: React.FC<NoteInputProps> = ({
             searchable={true}
             inputValue={productNameInputValue}
             isContentLoading={isProductDropdownContentLoading}
+            contentLoadingMessage={productDropdownContentLoadingMessage}
+            contentErrorMessage={productDropdownContentErrorMessage}
             disabled={isInputDisabled}
             onValueSelect={handleProductDropdownItemSelect}
             onInputValueChange={handleProductNameDropdownInputChange}

@@ -23,23 +23,22 @@ const NotesTable: React.FC<NotesTableProps> = ({ mealType, noteItems, notesForMe
     const notesForMeal = noteItems.filter(n => n.mealType === mealType);
 
     notesForMeal.forEach(note => {
-      rows.push(<NotesTableRowConnected mealType={mealType} note={note}></NotesTableRowConnected>);
+      rows.push(<NotesTableRowConnected note={note}></NotesTableRowConnected>);
     });
 
     return rows;
   };
 
-  const targetMealFetchState = notesForMealFetchStates.find(s => s.mealType === mealType);
-
-  if (!targetMealFetchState) {
-    return null;
-  }
-
-  const { error } = targetMealFetchState;
+  const targetNotesFetchState = notesForMealFetchStates.find(s => s.mealType === mealType);
+  const targetNotesErrorMessage = targetNotesFetchState && targetNotesFetchState.error;
 
   return (
     <div className="notes-table">
-      <Table columns={notesTableColumns} rows={mapNoteItemsToTableRows()} dataErrorMessage={error}></Table>
+      <Table
+        columns={notesTableColumns}
+        rows={mapNoteItemsToTableRows()}
+        dataErrorMessage={targetNotesErrorMessage}
+      ></Table>
     </div>
   );
 };

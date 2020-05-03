@@ -23,11 +23,11 @@ export const getProductDropdownItemsAsync = async ({
 export const getProductsAsync = async ({ pageSize, pageNumber, categoryId }: ProductsFilter): Promise<Response> => {
   let requestUrl = `${productsApiUrl}?pageSize=${pageSize}`;
 
-  if (pageNumber !== undefined) {
+  if (pageNumber) {
     requestUrl += `&pageNumber=${pageNumber}`;
   }
 
-  if (categoryId !== undefined) {
+  if (categoryId) {
     requestUrl += `&categoryId=${categoryId}`;
   }
 
@@ -49,8 +49,8 @@ export const createProductAsync = async (product: ProductCreateEdit): Promise<Re
   });
 };
 
-export const editProductAsync = async ({ id: productId, ...product }: ProductEditRequest): Promise<Response> => {
-  return await fetch(`${productsApiUrl}/${productId}`, {
+export const editProductAsync = async ({ id, product }: ProductEditRequest): Promise<Response> => {
+  return await fetch(`${productsApiUrl}/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
