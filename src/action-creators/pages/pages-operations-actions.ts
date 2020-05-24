@@ -1,5 +1,5 @@
 import { Dispatch } from 'redux';
-import { PageCreateEdit, PageEditRequest } from '../../models';
+import { PageCreateEdit, PageEditRequest, PagesExportRequest } from '../../models';
 import {
   PagesOperationsActionTypes,
   CreatePageSuccessAction,
@@ -17,8 +17,18 @@ import {
   EditPageActions,
   DeletePagesActionCreator,
   DeletePagesActions,
+  ExportPagesActionCreator,
+  ExportPagesActions,
+  ExportPagesSuccessAction,
+  ExportPagesErrorAction,
+  ExportPagesRequestAction,
+  ImportPagesActionCreator,
+  ImportPagesActions,
+  ImportPagesRequestAction,
+  ImportPagesSuccessAction,
+  ImportPagesErrorAction,
 } from '../../action-types';
-import { createPageAsync, deletePagesAsync, editPageAsync } from '../../services';
+import { createPageAsync, deletePagesAsync, editPageAsync, exportPagesAsync, importPagesAsync } from '../../services';
 import { readBadRequestResponseAsync } from '../../utils/bad-request-response-reader';
 
 const createPageRequest = (page: PageCreateEdit, operationMessage: string): CreatePageRequestAction => {
@@ -84,10 +94,53 @@ const deletePagesError = (error: string): DeletePagesErrorAction => {
   };
 };
 
+const exportPagesRequest = (operationMessage: string): ExportPagesRequestAction => {
+  return {
+    type: PagesOperationsActionTypes.ExportRequest,
+    operationMessage,
+  };
+};
+
+const exportPagesSuccess = (exportFile: Blob): ExportPagesSuccessAction => {
+  return {
+    type: PagesOperationsActionTypes.ExportSuccess,
+    exportFile,
+  };
+};
+
+const exportPagesError = (error: string): ExportPagesErrorAction => {
+  return {
+    type: PagesOperationsActionTypes.ExportError,
+    error,
+  };
+};
+
+const importPagesRequest = (operationMessage: string): ImportPagesRequestAction => {
+  return {
+    type: PagesOperationsActionTypes.ImportRequest,
+    operationMessage,
+  };
+};
+
+const importPagesSuccess = (): ImportPagesSuccessAction => {
+  return {
+    type: PagesOperationsActionTypes.ImportSuccess,
+  };
+};
+
+const importPagesError = (error: string): ImportPagesErrorAction => {
+  return {
+    type: PagesOperationsActionTypes.ImportError,
+    error,
+  };
+};
+
 enum PagesOperationsBaseErrorMessages {
   Create = 'Failed to create page',
   Edit = 'Failed to update page',
   Delete = 'Failed to delete selected',
+  Export = 'Failed to export pages',
+  Import = 'Failed to import pages',
 }
 
 export const createPage: CreatePageActionCreator = (page: PageCreateEdit) => {
@@ -165,7 +218,7 @@ export const deletePages: DeletePagesActionCreator = (pagesIds: number[]) => {
       switch (response.status) {
         case 400:
           const badRequestResponse = await readBadRequestResponseAsync(response);
-          alert(`${PagesOperationsBaseErrorMessages.Delete}: ${badRequestResponse}`);
+          alert(`${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}: ${badRequestResponse}`);
           return dispatch(
             deletePagesError(
               `${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}: ${badRequestResponse}`,
@@ -188,6 +241,67 @@ export const deletePages: DeletePagesActionCreator = (pagesIds: number[]) => {
       console.error(error);
       alert(`${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}`);
       return dispatch(deletePagesError(`${PagesOperationsBaseErrorMessages.Delete} ${messageSuffixForPage}`));
+    }
+  };
+};
+
+export const exportPages: ExportPagesActionCreator = (request: PagesExportRequest) => {
+  return async (dispatch: Dispatch<ExportPagesActions>): Promise<ExportPagesSuccessAction | ExportPagesErrorAction> => {
+    dispatch(exportPagesRequest('Exporting pages'));
+    try {
+      const response = await exportPagesAsync(request);
+
+      if (response.ok) {
+        const blob = await response.blob();
+        return dispatch(exportPagesSuccess(blob));
+      }
+
+      switch (response.status) {
+        case 400:
+          const badRequestResponse = await readBadRequestResponseAsync(response);
+          alert(`${PagesOperationsBaseErrorMessages.Export}: ${badRequestResponse}`);
+          return dispatch(exportPagesError(`${PagesOperationsBaseErrorMessages.Export}: ${badRequestResponse}`));
+        case 500:
+          alert(`${PagesOperationsBaseErrorMessages.Export}: server error`);
+          return dispatch(exportPagesError(`${PagesOperationsBaseErrorMessages.Export}: server error`));
+        default:
+          alert(`${PagesOperationsBaseErrorMessages.Export}: unknown response code`);
+          return dispatch(exportPagesError(`${PagesOperationsBaseErrorMessages.Export}: unknown response code`));
+      }
+    } catch (error) {
+      console.error(error);
+      alert(PagesOperationsBaseErrorMessages.Export);
+      return dispatch(exportPagesError(PagesOperationsBaseErrorMessages.Export));
+    }
+  };
+};
+
+export const importPages: ImportPagesActionCreator = (importFile: File) => {
+  return async (dispatch: Dispatch<ImportPagesActions>): Promise<ImportPagesSuccessAction | ImportPagesErrorAction> => {
+    dispatch(importPagesRequest('Importing pages'));
+    try {
+      const response = await importPagesAsync(importFile);
+
+      if (response.ok) {
+        return dispatch(importPagesSuccess());
+      }
+
+      switch (response.status) {
+        case 400:
+          const badRequestResponse = await readBadRequestResponseAsync(response);
+          alert(`${PagesOperationsBaseErrorMessages.Import}: ${badRequestResponse}`);
+          return dispatch(importPagesError(`${PagesOperationsBaseErrorMessages.Import}: ${badRequestResponse}`));
+        case 500:
+          alert(`${PagesOperationsBaseErrorMessages.Import}: server error`);
+          return dispatch(importPagesError(`${PagesOperationsBaseErrorMessages.Import}: server error`));
+        default:
+          alert(`${PagesOperationsBaseErrorMessages.Import}: unknown response code`);
+          return dispatch(importPagesError(`${PagesOperationsBaseErrorMessages.Import}: unknown response code`));
+      }
+    } catch (error) {
+      console.error(error);
+      alert(PagesOperationsBaseErrorMessages.Import);
+      return dispatch(importPagesError(PagesOperationsBaseErrorMessages.Import));
     }
   };
 };
