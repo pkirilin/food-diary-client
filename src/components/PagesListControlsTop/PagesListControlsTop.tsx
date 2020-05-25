@@ -10,13 +10,13 @@ import { useRouteMatch } from 'react-router-dom';
 import { PagesListActionTypes, PagesOperationsActionTypes } from '../../action-types';
 import { DropdownMenu, DropdownItem } from '../Controls';
 import PagesExportFormConnected from '../PagesExportForm';
+import PageCreateFormConnected from '../PageCreateForm';
 
 interface PagesListControlsTopProps
   extends PagesListControlsTopStateToPropsMapResult,
     PagesListControlsTopDispatchToPropsMapResult {}
 
 const PagesListControlsTop: React.FC<PagesListControlsTopProps> = ({
-  createDraftPage,
   pagesFilter,
   isPagesFilterChanged,
   clearPagesFilter,
@@ -42,11 +42,8 @@ const PagesListControlsTop: React.FC<PagesListControlsTopProps> = ({
   const isClearFilterDisabled = isControlDisabled || !isPagesFilterChanged;
 
   const handleAddIconClick = (): void => {
-    createDraftPage({
-      id: 0,
-      date: '',
-      countNotes: 0,
-      countCalories: 0,
+    openModal('New page', <PageCreateFormConnected></PageCreateFormConnected>, {
+      width: '35%',
     });
   };
 
