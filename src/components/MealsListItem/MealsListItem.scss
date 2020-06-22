@@ -11,19 +11,16 @@ $inner-padding: 10px;
     border: $border-width-thick solid $color-middle-green-50;
     cursor: pointer;
 
-    :first-child {
-      margin-right: 5px;
-    }
-
     &__name {
       flex: 1;
       color: $color-middle-green;
-      transition: 0.2s;
+      transition: $transition-fast;
+      margin: 0 5px;
     }
 
     svg {
       fill: $color-middle-green;
-      transition: 0.2s;
+      transition: $transition-fast;
     }
 
     &:hover > &__name {
@@ -46,23 +43,6 @@ $inner-padding: 10px;
 
     &_collapsed {
       display: none;
-    }
-
-    &__notes {
-      position: relative;
-      margin-top: 10px;
-
-      &__preloader {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-
-        & + * {
-          opacity: 0.25;
-          pointer-events: none;
-        }
-      }
     }
   }
 }

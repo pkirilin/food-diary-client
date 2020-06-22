@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './PagesExportForm.scss';
-import { Input, Label, FormGroup, DropdownList, Button } from '../Controls';
+import { Input, Label, DropdownList, Button, Container } from '../__ui__';
 import { exportFormats } from './export-formats';
 import {
   PagesExportFormStateToPropsMapResult,
@@ -9,7 +9,6 @@ import {
 import { PagesOperationsActionTypes } from '../../action-types';
 import { downloadFile } from '../../utils';
 import { ExportFormat } from '../../models';
-import { ModalButtons } from '../ModalBlocks';
 
 interface PagesExportFormProps extends PagesExportFormStateToPropsMapResult, PagesExportFormDispatchToPropsMapResult {}
 
@@ -62,34 +61,40 @@ const PagesExportForm: React.FC<PagesExportFormProps> = ({
   };
 
   return (
-    <div className="pages-export-form">
-      <FormGroup>
-        <Label>Start date</Label>
-        <Input type="date" value={startDate} onChange={handleStartDateChange} disabled={isInputDisabled}></Input>
-      </FormGroup>
-      <FormGroup>
-        <Label>End date</Label>
-        <Input type="date" value={endDate} onChange={handleEndDateChange} disabled={isInputDisabled}></Input>
-      </FormGroup>
-      <FormGroup>
-        <Label>Format</Label>
-        <DropdownList
-          items={exportFormats}
-          placeholder="Format"
-          inputValue={format}
-          onValueSelect={handleFormatValueSelect}
-          disabled={isInputDisabled}
-        ></DropdownList>
-      </FormGroup>
-      <ModalButtons>
-        <Button onClick={handleExportButtonClick} disabled={isInputDisabled || !isInputValid}>
-          Export
-        </Button>
-        <Button onClick={handleCancelButtonClick} disabled={isInputDisabled}>
-          Cancel
-        </Button>
-      </ModalButtons>
-    </div>
+    <Container direction="column" spaceBetweenChildren="large">
+      <Container direction="column" spaceBetweenChildren="medium">
+        <Container direction="column">
+          <Label>Start date</Label>
+          <Input type="date" value={startDate} onChange={handleStartDateChange} disabled={isInputDisabled}></Input>
+        </Container>
+        <Container direction="column">
+          <Label>End date</Label>
+          <Input type="date" value={endDate} onChange={handleEndDateChange} disabled={isInputDisabled}></Input>
+        </Container>
+        <Container direction="column">
+          <Label>Format</Label>
+          <DropdownList
+            items={exportFormats}
+            placeholder="Format"
+            inputValue={format}
+            onValueSelect={handleFormatValueSelect}
+            disabled={isInputDisabled}
+          ></DropdownList>
+        </Container>
+      </Container>
+      <Container justify="flex-end" spaceBetweenChildren="medium">
+        <Container col="4">
+          <Button onClick={handleExportButtonClick} disabled={isInputDisabled || !isInputValid}>
+            Export
+          </Button>
+        </Container>
+        <Container col="4">
+          <Button onClick={handleCancelButtonClick} disabled={isInputDisabled}>
+            Cancel
+          </Button>
+        </Container>
+      </Container>
+    </Container>
   );
 };
 

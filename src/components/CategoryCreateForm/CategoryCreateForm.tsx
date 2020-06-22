@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import './CategoryCreateForm.scss';
 import { CategoryCreateFormDispatchToPropsMapResult } from './CategoryCreateFormConnected';
-import { FormGroup, Label, Input, Button } from '../Controls';
+import { Label, Input, Button, Container } from '../__ui__';
 import { useCategoryValidation } from '../../hooks';
-import { ModalButtons } from '../ModalBlocks';
 
 type CategoryCreateFormProps = CategoryCreateFormDispatchToPropsMapResult;
 
@@ -30,18 +29,22 @@ const CategoryCreateForm: React.FC<CategoryCreateFormProps> = ({
   };
 
   return (
-    <React.Fragment>
-      <FormGroup>
+    <Container direction="column" spaceBetweenChildren="large">
+      <Container direction="column">
         <Label>Category name</Label>
         <Input type="text" placeholder="Category name" value={categoryName} onChange={handleCategoryNameChange}></Input>
-      </FormGroup>
-      <ModalButtons>
-        <Button onClick={handleCreateClick} disabled={!isCategoryNameValid}>
-          Create
-        </Button>
-        <Button onClick={handleCancelClick}>Cancel</Button>
-      </ModalButtons>
-    </React.Fragment>
+      </Container>
+      <Container justify="flex-end" spaceBetweenChildren="medium">
+        <Container col="4">
+          <Button onClick={handleCreateClick} disabled={!isCategoryNameValid}>
+            Create
+          </Button>
+        </Container>
+        <Container col="4">
+          <Button onClick={handleCancelClick}>Cancel</Button>
+        </Container>
+      </Container>
+    </Container>
   );
 };
 

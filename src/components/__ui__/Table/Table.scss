@@ -1,0 +1,41 @@
+@import '../../../variables.scss';
+
+$cell-inner-padding: 5px;
+$cell-height: 35px;
+
+$row-border-thickness: 0.5px;
+$row-transition: $transition-slow;
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+
+  thead {
+    background-color: $color-dark-green;
+
+    tr {
+      td {
+        color: $color-light-green;
+        padding: $cell-inner-padding;
+        height: $cell-height;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: $row-border-thickness solid $color-middle-green;
+      transition: $row-transition;
+
+      td {
+        padding: $cell-inner-padding;
+        height: $cell-height;
+
+        &.empty {
+          color: $color-middle-green-50;
+          text-align: center;
+        }
+      }
+    }
+  }
+}

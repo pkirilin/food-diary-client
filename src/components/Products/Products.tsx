@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import './Products.scss';
-import { ContentWrapper, MainContainer, SectionContainer, SectionTitle } from '../ContainerBlocks';
 import ProductInputConnected from '../ProductInput';
 import ProductsTableConnected from '../ProductsTable';
 import { ProductsStateToPropsMapResult, ProductsDispatchToPropsMapResult } from './ProductsConnected';
 import { ProductsFilter } from '../../models';
 import { productsFilterInitialState } from '../../reducers/products';
+import { Container } from '../__ui__';
 
 interface ProductsProps extends ProductsStateToPropsMapResult, ProductsDispatchToPropsMapResult {}
 
@@ -33,20 +32,20 @@ const Products: React.FC<ProductsProps> = ({ productsFilter, clearProductsFilter
   }, [clearProductsFilter]);
 
   return (
-    <ContentWrapper>
-      <MainContainer>
-        <SectionContainer>
-          {/* Ensures that products table in this section is initially rendered with cleared filter */}
-          {isFilterCleared && (
-            <React.Fragment>
-              <SectionTitle title="Products"></SectionTitle>
+    <main>
+      <section>
+        {/* Ensures that products table in this section is initially rendered with cleared filter */}
+        {isFilterCleared && (
+          <React.Fragment>
+            <h1>Products</h1>
+            <Container direction="column" spaceBetweenChildren="medium">
               <ProductInputConnected></ProductInputConnected>
               <ProductsTableConnected></ProductsTableConnected>
-            </React.Fragment>
-          )}
-        </SectionContainer>
-      </MainContainer>
-    </ContentWrapper>
+            </Container>
+          </React.Fragment>
+        )}
+      </section>
+    </main>
   );
 };
 

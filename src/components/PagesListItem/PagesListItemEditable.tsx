@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { SidebarListItem, SidebarListItemControls } from '../SidebarBlocks';
-import { Input } from '../Controls';
-import Icon from '../Icon';
 import { usePageValidation } from '../../hooks';
 import { PagesOperationsActionTypes } from '../../action-types';
 import { PageItem } from '../../models';
@@ -9,6 +7,7 @@ import {
   PagesListItemEditableStateToPropsMapResult,
   PagesListItemEditableDispatchToPropsMapResult,
 } from './PagesListItemEditableConnected';
+import { Icon, Input } from '../__ui__';
 
 interface PagesListItemEditableProps
   extends PagesListItemEditableStateToPropsMapResult,

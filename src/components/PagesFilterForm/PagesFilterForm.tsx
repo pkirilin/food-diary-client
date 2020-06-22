@@ -4,8 +4,7 @@ import {
   PagesFilterFormDispatchToPropsMapResult,
   PagesFilterFormStateToPropsMapResult,
 } from './PagesFilterFormConnected';
-import { Button, FormGroup, Label, Input } from '../Controls';
-import { ModalButtons } from '../ModalBlocks';
+import { Button, Label, Input, Container } from '../__ui__';
 
 interface PagesFilterFormProps extends PagesFilterFormStateToPropsMapResult, PagesFilterFormDispatchToPropsMapResult {}
 
@@ -50,22 +49,28 @@ const PagesFilterForm: React.FC<PagesFilterFormProps> = ({
   };
 
   return (
-    <div className="pages-filter-form">
-      <FormGroup>
-        <Label>Start date</Label>
-        <Input type="date" value={startDate} onChange={handleStartDateChange}></Input>
-      </FormGroup>
-      <FormGroup>
-        <Label>End date</Label>
-        <Input type="date" value={endDate} onChange={handleEndDateChange}></Input>
-      </FormGroup>
-      <ModalButtons>
-        <Button onClick={handleApplyClick} disabled={!areDateRangesValid}>
-          Apply
-        </Button>
-        <Button onClick={handleCancelClick}>Cancel</Button>
-      </ModalButtons>
-    </div>
+    <Container direction="column" spaceBetweenChildren="large">
+      <Container direction="column" spaceBetweenChildren="medium">
+        <Container direction="column">
+          <Label>Start date</Label>
+          <Input type="date" value={startDate} onChange={handleStartDateChange}></Input>
+        </Container>
+        <Container direction="column">
+          <Label>End date</Label>
+          <Input type="date" value={endDate} onChange={handleEndDateChange}></Input>
+        </Container>
+      </Container>
+      <Container justify="flex-end" spaceBetweenChildren="medium">
+        <Container col="4">
+          <Button onClick={handleApplyClick} disabled={!areDateRangesValid}>
+            Apply
+          </Button>
+        </Container>
+        <Container col="4">
+          <Button onClick={handleCancelClick}>Cancel</Button>
+        </Container>
+      </Container>
+    </Container>
   );
 };
 
