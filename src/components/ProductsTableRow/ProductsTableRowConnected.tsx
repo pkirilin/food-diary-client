@@ -1,8 +1,7 @@
 import { connect } from 'react-redux';
 import ProductsTableRow from './ProductsTableRow';
-import { RootState } from '../../store';
+import { RootState, ModalBody, ModalOptions } from '../../store';
 import {
-  SetEditableForProductAction,
   GetProductsListDispatch,
   DeleteProductDispatch,
   GetCategoriesListDispatch,
@@ -12,29 +11,22 @@ import {
   OpenModalAction,
 } from '../../action-types';
 import { Dispatch } from 'redux';
-import {
-  setEditableForProduct,
-  deleteProduct,
-  getProducts,
-  getCategories,
-  openConfirmationModal,
-} from '../../action-creators';
+import { deleteProduct, getProducts, getCategories, openConfirmationModal, openModal } from '../../action-creators';
 import { ProductsFilter } from '../../models';
 
-type ProductsTableRowDispatch = Dispatch<SetEditableForProductAction | OpenModalAction> &
+type ProductsTableRowDispatch = Dispatch<OpenModalAction> &
   GetProductsListDispatch &
   GetCategoriesListDispatch &
   DeleteProductDispatch;
 
 export interface ProductsTableRowStateToPropsMapResult {
-  editableProductsIds: number[];
   isProductOperationInProcess: boolean;
   isCategoryOperationInProcess: boolean;
   productsFilter: ProductsFilter;
 }
 
 export interface ProductsTableRowDispatchToPropsMapResult {
-  setEditableForProduct: (productId: number, editable: boolean) => void;
+  openModal: (title: string, body: ModalBody, options?: ModalOptions) => void;
   openConfirmationModal: (title: string, message: string, confirm: () => void) => void;
   getProducts: GetProductsListDispatchProp;
   getCategories: GetCategoriesListDispatchProp;
@@ -43,7 +35,6 @@ export interface ProductsTableRowDispatchToPropsMapResult {
 
 const mapStateToProps = (state: RootState): ProductsTableRowStateToPropsMapResult => {
   return {
-    editableProductsIds: state.products.list.editableProductsIds,
     isProductOperationInProcess: state.products.operations.productOperationStatus.performing,
     isCategoryOperationInProcess: state.categories.operations.status.performing,
     productsFilter: state.products.filter.params,
@@ -64,8 +55,8 @@ const mapDispatchToProps = (dispatch: ProductsTableRowDispatch): ProductsTableRo
   };
 
   return {
-    setEditableForProduct: (productId: number, editable: boolean): void => {
-      dispatch(setEditableForProduct(productId, editable));
+    openModal: (title: string, body: ModalBody, options?: ModalOptions): void => {
+      dispatch(openModal(title, body, options));
     },
 
     openConfirmationModal: (title: string, message: string, confirm: () => void): void => {

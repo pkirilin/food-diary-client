@@ -6,9 +6,9 @@ import {
   ProductsTableRowDispatchToPropsMapResult,
 } from './ProductsTableRowConnected';
 import { ProductsOperationsActionTypes } from '../../action-types';
-import { useProductInputDisabled } from '../../hooks';
-import ProductsTableRowEditableConnected from './ProductsTableRowEditableConnected';
+import { useProductInputDisabled, useHover } from '../../hooks';
 import { Icon } from '../__ui__';
+import ProductInputConnected from '../ProductInput';
 
 interface ProductsTableRowProps
   extends ProductsTableRowStateToPropsMapResult,
@@ -20,18 +20,17 @@ interface ProductsTableRowProps
 const ProductsTableRow: React.FC<ProductsTableRowProps> = ({
   product,
   refreshCategoriesOnDeleteProduct = false,
-  editableProductsIds,
   isProductOperationInProcess,
   isCategoryOperationInProcess,
   productsFilter,
-  setEditableForProduct,
   getProducts,
   getCategories,
   deleteProduct,
+  openModal,
   openConfirmationModal,
 }: ProductsTableRowProps) => {
-  const isProductEditable = editableProductsIds.some(id => id === product.id);
   const isProductInputDisabled = useProductInputDisabled(isProductOperationInProcess, isCategoryOperationInProcess);
+  const [areRowIconsVisible, handleRowMouseEnter, handleRowMouseLeave] = useHover();
 
   const runDeleteProductAsync = async (): Promise<void> => {
     const { type: deleteProductActionType } = await deleteProduct(product.id);
@@ -46,30 +45,49 @@ const ProductsTableRow: React.FC<ProductsTableRowProps> = ({
   };
 
   const handleEditIconClick = (): void => {
-    setEditableForProduct(product.id, true);
+    openModal('Edit product', <ProductInputConnected product={product}></ProductInputConnected>, {
+      width: '35%',
+    });
   };
 
   const handleDeleteIconClick = (): void => {
-    openConfirmationModal('Delete product', `Do you want to delete product "${product.name}"`, () => {
+    openConfirmationModal('Delete product', `Do you want to delete product "${product.name}"?`, () => {
       runDeleteProductAsync();
     });
   };
 
-  if (isProductEditable) {
-    return <ProductsTableRowEditableConnected product={product}></ProductsTableRowEditableConnected>;
-  }
-
   return (
-    <tr>
+    <tr onMouseEnter={handleRowMouseEnter} onMouseLeave={handleRowMouseLeave}>
       <td>{product.name}</td>
       <td>{product.caloriesCost}</td>
       <td>{product.categoryName}</td>
-      <td>
-        <Icon type="edit" size="small" disabled={isProductInputDisabled} onClick={handleEditIconClick}></Icon>
-      </td>
-      <td>
-        <Icon type="close" size="small" disabled={isProductInputDisabled} onClick={handleDeleteIconClick}></Icon>
-      </td>
+      {areRowIconsVisible ? (
+        <React.Fragment>
+          <td>
+            <Icon
+              type="edit"
+              size="small"
+              title="Edit product"
+              disabled={isProductInputDisabled}
+              onClick={handleEditIconClick}
+            ></Icon>
+          </td>
+          <td>
+            <Icon
+              type="close"
+              size="small"
+              title="Delete product"
+              disabled={isProductInputDisabled}
+              onClick={handleDeleteIconClick}
+            ></Icon>
+          </td>
+        </React.Fragment>
+      ) : (
+        <React.Fragment>
+          <td></td>
+          <td></td>
+        </React.Fragment>
+      )}
     </tr>
   );
 };

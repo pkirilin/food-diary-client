@@ -1,14 +1,15 @@
 import React from 'react';
 import './Container.scss';
 
-interface ContainerProps {
+interface ContainerProps extends React.DOMAttributes<HTMLDivElement> {
   justify?: 'center' | 'space-between' | 'flex-end';
   align?: 'center' | 'flex-end';
   direction?: 'row' | 'column';
   col?: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12';
-  textColor?: 'middle-green';
+  textColor?: 'middle-green' | 'middle-green-50';
   spaceBetweenChildren?: 'small' | 'medium' | 'large';
   additionalCssClassNames?: string[];
+  isSectionRoot?: boolean;
 }
 
 const Container: React.FC<ContainerProps> = ({
@@ -20,6 +21,8 @@ const Container: React.FC<ContainerProps> = ({
   textColor,
   spaceBetweenChildren,
   additionalCssClassNames = [],
+  isSectionRoot = false,
+  ...props
 }: React.PropsWithChildren<ContainerProps>) => {
   const baseClassName = 'container';
   const classNames = [baseClassName];
@@ -42,11 +45,17 @@ const Container: React.FC<ContainerProps> = ({
     }
   }
 
+  if (isSectionRoot) classNames.push(`${baseClassName}_section-root`);
+
   additionalCssClassNames.forEach(cn => {
     classNames.push(cn);
   });
 
-  return <div className={classNames.join(' ')}>{children}</div>;
+  return (
+    <div {...props} className={classNames.join(' ')}>
+      {children}
+    </div>
+  );
 };
 
 export default Container;
