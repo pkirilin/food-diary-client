@@ -1,11 +1,11 @@
 import { connect } from 'react-redux';
 import ProductsControlPanel from './ProductsControlPanel';
 import { Dispatch } from 'redux';
-import { OpenModalAction } from '../../action-types';
+import { OpenModalAction, ClearProductsFilterAction } from '../../action-types';
 import { ModalBody, ModalOptions, DataOperationState, RootState, DataFetchState } from '../../store';
 import { openModal } from '../../action-creators';
 
-type ProductsControlPanelDispatch = Dispatch<OpenModalAction>;
+type ProductsControlPanelDispatch = Dispatch<OpenModalAction | ClearProductsFilterAction>;
 
 export interface ProductsControlPanelStateToPropsMapResult {
   productOperationStatus: DataOperationState;

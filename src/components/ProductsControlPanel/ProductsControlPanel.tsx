@@ -1,10 +1,11 @@
 import React from 'react';
-import { Container, Button, Loader } from '../__ui__';
+import { Container, Button, Loader, Icon } from '../__ui__';
 import {
   ProductsControlPanelStateToPropsMapResult,
   ProductsControlPanelDispatchToPropsMapResult,
 } from './ProductsControlPanelConnected';
 import ProductInputConnected from '../ProductInput';
+import ProductsFilterFormConnected from '../ProductsFilterForm';
 
 interface ProductsControlPanelProps
   extends ProductsControlPanelStateToPropsMapResult,
@@ -24,12 +25,23 @@ const ProductsControlPanel: React.FC<ProductsControlPanelProps> = ({
     });
   };
 
+  const handleOpenProductsFilterClick = (): void => {
+    openModal('Products filter', <ProductsFilterFormConnected></ProductsFilterFormConnected>, {
+      width: '35%',
+    });
+  };
+
   return (
     <Container justify="space-between">
-      <Container col="3">
-        <Button onClick={handleAddProductClick} disabled={isOperationInProcess || isProductsTableLoading}>
-          Add product
-        </Button>
+      <Container col="9" spaceBetweenChildren="large">
+        <Container col="3">
+          <Button onClick={handleAddProductClick} disabled={isOperationInProcess || isProductsTableLoading}>
+            Add product
+          </Button>
+        </Container>
+        <Container col="3" justify="center">
+          <Icon type="filter" label="Filter products" onClick={handleOpenProductsFilterClick}></Icon>
+        </Container>
       </Container>
       <Container col="3" justify="center">
         {isOperationInProcess && <Loader size="small" label={operationMessage}></Loader>}
