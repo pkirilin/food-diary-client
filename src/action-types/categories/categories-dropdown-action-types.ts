@@ -1,5 +1,5 @@
-import { Action, ActionCreator } from 'redux';
-import { ThunkAction, ThunkDispatch } from 'redux-thunk';
+import { ThunkDispatch } from 'redux-thunk';
+import { ThunkHelperAllActions, ThunkHelperResultActions } from '../../helpers';
 import { CategoryDropdownItem, CategoryDropdownSearchRequest } from '../../models';
 
 export enum CategoriesDropdownActionTypes {
@@ -8,43 +8,29 @@ export enum CategoriesDropdownActionTypes {
   Error = 'CATEGORIES_DROPDOWN_ITEMS__ERROR',
 }
 
-export interface GetCategoryDropdownItemsRequestAction extends Action<CategoriesDropdownActionTypes.Request> {
-  type: CategoriesDropdownActionTypes.Request;
-  loadingMessage?: string;
-}
+export type GetCategoryDropdownItemsActions = ThunkHelperAllActions<
+  CategoriesDropdownActionTypes.Request,
+  CategoriesDropdownActionTypes.Success,
+  CategoriesDropdownActionTypes.Error,
+  CategoryDropdownItem[],
+  CategoryDropdownSearchRequest
+>;
 
-export interface GetCategoryDropdownItemsSuccessAction extends Action<CategoriesDropdownActionTypes.Success> {
-  type: CategoriesDropdownActionTypes.Success;
-  categoryDropdownItems: CategoryDropdownItem[];
-}
-
-export interface GetCategoryDropdownItemsErrorAction extends Action<CategoriesDropdownActionTypes.Error> {
-  type: CategoriesDropdownActionTypes.Error;
-  error?: string;
-}
-
-export type GetCategoryDropdownItemsActions =
-  | GetCategoryDropdownItemsRequestAction
-  | GetCategoryDropdownItemsSuccessAction
-  | GetCategoryDropdownItemsErrorAction;
-
-export type CategoriesDropdownActions = GetCategoryDropdownItemsActions;
-
-export type GetCategoryDropdownItemsActionCreator = ActionCreator<
-  ThunkAction<
-    Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction>,
-    CategoryDropdownItem[],
-    CategoryDropdownSearchRequest,
-    GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction
-  >
+export type GetCategoryDropdownItemsResultActions = ThunkHelperResultActions<
+  CategoriesDropdownActionTypes.Success,
+  CategoriesDropdownActionTypes.Error,
+  CategoryDropdownItem[],
+  CategoryDropdownSearchRequest
 >;
 
 export type GetCategoryDropdownItemsDispatch = ThunkDispatch<
   CategoryDropdownItem[],
   CategoryDropdownSearchRequest,
-  GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction
+  GetCategoryDropdownItemsResultActions
 >;
 
 export type GetCategoryDropdownItemsDispatchProp = (
   request: CategoryDropdownSearchRequest,
-) => Promise<GetCategoryDropdownItemsSuccessAction | GetCategoryDropdownItemsErrorAction>;
+) => Promise<GetCategoryDropdownItemsResultActions>;
+
+export type CategoriesDropdownActions = GetCategoryDropdownItemsActions;

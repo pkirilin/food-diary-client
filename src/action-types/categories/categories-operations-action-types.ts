@@ -1,6 +1,6 @@
-import { Action, ActionCreator } from 'redux';
 import { CategoryCreateEdit, CategoryEditRequest } from '../../models';
-import { ThunkAction, ThunkDispatch } from 'redux-thunk';
+import { ThunkDispatch } from 'redux-thunk';
+import { ThunkHelperAllActions, ThunkHelperResultActions } from '../../helpers';
 
 export enum CategoriesOperationsActionTypes {
   CreateRequest = 'CATEGORIES_OPERATIONS__CREATE_REQUEST',
@@ -16,118 +16,61 @@ export enum CategoriesOperationsActionTypes {
   DeleteError = 'CATEGORIES_OPERATIONS__DELETE_ERROR',
 }
 
-export interface CreateCategoryRequestAction extends Action<CategoriesOperationsActionTypes.CreateRequest> {
-  type: CategoriesOperationsActionTypes.CreateRequest;
-  category: CategoryCreateEdit;
-  operationMessage: string;
-}
+export type CreateCategoryActions = ThunkHelperAllActions<
+  CategoriesOperationsActionTypes.CreateRequest,
+  CategoriesOperationsActionTypes.CreateSuccess,
+  CategoriesOperationsActionTypes.CreateError,
+  number,
+  CategoryCreateEdit
+>;
 
-export interface CreateCategorySuccessAction extends Action<CategoriesOperationsActionTypes.CreateSuccess> {
-  type: CategoriesOperationsActionTypes.CreateSuccess;
-  createdCategoryId: number;
-}
+export type EditCategoryActions = ThunkHelperAllActions<
+  CategoriesOperationsActionTypes.EditRequest,
+  CategoriesOperationsActionTypes.EditSuccess,
+  CategoriesOperationsActionTypes.EditError,
+  {},
+  CategoryEditRequest
+>;
 
-export interface CreateCategoryErrorAction extends Action<CategoriesOperationsActionTypes.CreateError> {
-  type: CategoriesOperationsActionTypes.CreateError;
-  error: string;
-}
+export type DeleteCategoryActions = ThunkHelperAllActions<
+  CategoriesOperationsActionTypes.DeleteRequest,
+  CategoriesOperationsActionTypes.DeleteSuccess,
+  CategoriesOperationsActionTypes.DeleteError,
+  {},
+  number
+>;
 
-export interface EditCategoryRequestAction extends Action<CategoriesOperationsActionTypes.EditRequest> {
-  type: CategoriesOperationsActionTypes.EditRequest;
-  request: CategoryEditRequest;
-  operationMessage: string;
-}
+export type CreateCategoryResultActions = ThunkHelperResultActions<
+  CategoriesOperationsActionTypes.CreateSuccess,
+  CategoriesOperationsActionTypes.CreateError,
+  number,
+  CategoryCreateEdit
+>;
 
-export interface EditCategorySuccessAction extends Action<CategoriesOperationsActionTypes.EditSuccess> {
-  type: CategoriesOperationsActionTypes.EditSuccess;
-}
+export type EditCategoryResultActions = ThunkHelperResultActions<
+  CategoriesOperationsActionTypes.EditSuccess,
+  CategoriesOperationsActionTypes.EditError,
+  {},
+  CategoryEditRequest
+>;
 
-export interface EditCategoryErrorAction extends Action<CategoriesOperationsActionTypes.EditError> {
-  type: CategoriesOperationsActionTypes.EditError;
-  error: string;
-}
-
-export interface DeleteCategoryRequestAction extends Action<CategoriesOperationsActionTypes.DeleteRequest> {
-  type: CategoriesOperationsActionTypes.DeleteRequest;
-  operationMessage: string;
-}
-
-export interface DeleteCategorySuccessAction extends Action<CategoriesOperationsActionTypes.DeleteSuccess> {
-  type: CategoriesOperationsActionTypes.DeleteSuccess;
-}
-
-export interface DeleteCategoryErrorAction extends Action<CategoriesOperationsActionTypes.DeleteError> {
-  type: CategoriesOperationsActionTypes.DeleteError;
-  error: string;
-}
-
-export type CreateCategoryActions =
-  | CreateCategoryRequestAction
-  | CreateCategorySuccessAction
-  | CreateCategoryErrorAction;
-
-export type EditCategoryActions = EditCategoryRequestAction | EditCategorySuccessAction | EditCategoryErrorAction;
-
-export type DeleteCategoryActions =
-  | DeleteCategoryRequestAction
-  | DeleteCategorySuccessAction
-  | DeleteCategoryErrorAction;
+export type DeleteCategoryResultActions = ThunkHelperResultActions<
+  CategoriesOperationsActionTypes.DeleteSuccess,
+  CategoriesOperationsActionTypes.DeleteError,
+  {},
+  number
+>;
 
 export type CategoriesOperationsActions = CreateCategoryActions | EditCategoryActions | DeleteCategoryActions;
 
-export type CreateCategoryActionCreator = ActionCreator<
-  ThunkAction<
-    Promise<CreateCategorySuccessAction | CreateCategoryErrorAction>,
-    void,
-    CategoryCreateEdit,
-    CreateCategorySuccessAction | CreateCategoryErrorAction
-  >
->;
+export type CreateCategoryDispatch = ThunkDispatch<number, CategoryCreateEdit, CreateCategoryResultActions>;
 
-export type DeleteCategoryActionCreator = ActionCreator<
-  ThunkAction<
-    Promise<DeleteCategorySuccessAction | DeleteCategoryErrorAction>,
-    void,
-    number,
-    DeleteCategorySuccessAction | DeleteCategoryErrorAction
-  >
->;
+export type EditCategoryDispatch = ThunkDispatch<{}, CategoryEditRequest, EditCategoryResultActions>;
 
-export type EditCategoryActionCreator = ActionCreator<
-  ThunkAction<
-    Promise<EditCategorySuccessAction | EditCategoryErrorAction>,
-    void,
-    CategoryEditRequest,
-    EditCategorySuccessAction | EditCategoryErrorAction
-  >
->;
+export type DeleteCategoryDispatch = ThunkDispatch<{}, number, DeleteCategoryResultActions>;
 
-export type CreateCategoryDispatch = ThunkDispatch<
-  void,
-  CategoryCreateEdit,
-  CreateCategorySuccessAction | CreateCategoryErrorAction
->;
+export type CreateCategoryDispatchProp = (category: CategoryCreateEdit) => Promise<CreateCategoryResultActions>;
 
-export type EditCategoryDispatch = ThunkDispatch<
-  void,
-  CategoryEditRequest,
-  EditCategorySuccessAction | EditCategoryErrorAction
->;
+export type EditCategoryDispatchProp = (request: CategoryEditRequest) => Promise<EditCategoryResultActions>;
 
-export type DeleteCategoryDispatch = ThunkDispatch<
-  void,
-  number,
-  DeleteCategorySuccessAction | DeleteCategoryErrorAction
->;
-
-export type CreateCategoryDispatchProp = (
-  category: CategoryCreateEdit,
-) => Promise<CreateCategorySuccessAction | CreateCategoryErrorAction>;
-
-export type EditCategoryDispatchProp = (
-  request: CategoryEditRequest,
-) => Promise<EditCategorySuccessAction | EditCategoryErrorAction>;
-
-export type DeleteCategoryDispatchProp = (
-  categoryId: number,
-) => Promise<DeleteCategorySuccessAction | DeleteCategoryErrorAction>;
+export type DeleteCategoryDispatchProp = (categoryId: number) => Promise<DeleteCategoryResultActions>;

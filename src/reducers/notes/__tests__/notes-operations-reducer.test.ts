@@ -1,31 +1,21 @@
-import {
-  CreateNoteErrorAction,
-  CreateNoteRequestAction,
-  CreateNoteSuccessAction,
-  DeleteNoteErrorAction,
-  DeleteNoteRequestAction,
-  DeleteNoteSuccessAction,
-  EditNoteErrorAction,
-  EditNoteRequestAction,
-  EditNoteSuccessAction,
-  NotesOperationsActionTypes,
-} from '../../../action-types';
-import { MealType } from '../../../models';
+import { NotesOperationsActionTypes } from '../../../action-types';
+import { ErrorAction, RequestAction, SuccessAction } from '../../../helpers';
+import { MealType, NoteCreateEdit, NoteDeleteRequest, NoteEditRequest } from '../../../models';
 import { NotesOperationsState } from '../../../store';
 import notesOperationsReducer from '../notes-operations-reducer';
 
 describe('notes operations reducer', () => {
   test('should handle create request', () => {
-    const action: CreateNoteRequestAction = {
+    const action: RequestAction<NotesOperationsActionTypes.CreateRequest, NoteCreateEdit> = {
       type: NotesOperationsActionTypes.CreateRequest,
-      note: {
+      payload: {
         mealType: MealType.Breakfast,
         productId: 1,
         pageId: 1,
         productQuantity: 100,
         displayOrder: 0,
       },
-      operationMessage: 'Test',
+      requestMessage: 'Test',
     };
     const state: NotesOperationsState = {
       mealOperationStatuses: [
@@ -59,9 +49,16 @@ describe('notes operations reducer', () => {
   });
 
   test('should handle create success', () => {
-    const action: CreateNoteSuccessAction = {
+    const action: SuccessAction<NotesOperationsActionTypes.CreateSuccess, {}, NoteCreateEdit> = {
       type: NotesOperationsActionTypes.CreateSuccess,
-      mealType: MealType.Breakfast,
+      data: {},
+      payload: {
+        mealType: MealType.Breakfast,
+        productId: 1,
+        pageId: 1,
+        productQuantity: 100,
+        displayOrder: 0,
+      },
     };
     const state: NotesOperationsState = {
       mealOperationStatuses: [
@@ -94,10 +91,16 @@ describe('notes operations reducer', () => {
   });
 
   test('should handle create error', () => {
-    const action: CreateNoteErrorAction = {
+    const action: ErrorAction<NotesOperationsActionTypes.CreateError, NoteCreateEdit> = {
       type: NotesOperationsActionTypes.CreateError,
-      mealType: MealType.Breakfast,
-      error: 'Test',
+      errorMessage: 'Test',
+      payload: {
+        mealType: MealType.Breakfast,
+        productId: 1,
+        pageId: 1,
+        productQuantity: 100,
+        displayOrder: 0,
+      },
     };
     const state: NotesOperationsState = {
       mealOperationStatuses: [
@@ -131,9 +134,9 @@ describe('notes operations reducer', () => {
   });
 
   test('should handle edit request', () => {
-    const action: EditNoteRequestAction = {
+    const action: RequestAction<NotesOperationsActionTypes.EditRequest, NoteEditRequest> = {
       type: NotesOperationsActionTypes.EditRequest,
-      request: {
+      payload: {
         id: 1,
         note: {
           mealType: MealType.Breakfast,
@@ -143,7 +146,7 @@ describe('notes operations reducer', () => {
           displayOrder: 0,
         },
       },
-      operationMessage: 'Test',
+      requestMessage: 'Test',
     };
     const state: NotesOperationsState = {
       mealOperationStatuses: [
@@ -177,9 +180,19 @@ describe('notes operations reducer', () => {
   });
 
   test('should handle edit success', () => {
-    const action: EditNoteSuccessAction = {
+    const action: SuccessAction<NotesOperationsActionTypes.EditSuccess, {}, NoteEditRequest> = {
       type: NotesOperationsActionTypes.EditSuccess,
-      mealType: MealType.Breakfast,
+      payload: {
+        id: 1,
+        note: {
+          mealType: MealType.Breakfast,
+          productId: 1,
+          pageId: 1,
+          productQuantity: 100,
+          displayOrder: 0,
+        },
+      },
+      data: {},
     };
     const state: NotesOperationsState = {
       mealOperationStatuses: [
@@ -212,10 +225,19 @@ describe('notes operations reducer', () => {
   });
 
   test('should handle edit error', () => {
-    const action: EditNoteErrorAction = {
+    const action: ErrorAction<NotesOperationsActionTypes.EditError, NoteEditRequest> = {
       type: NotesOperationsActionTypes.EditError,
-      mealType: MealType.Breakfast,
-      error: 'Test',
+      payload: {
+        id: 1,
+        note: {
+          mealType: MealType.Breakfast,
+          productId: 1,
+          pageId: 1,
+          productQuantity: 100,
+          displayOrder: 0,
+        },
+      },
+      errorMessage: 'Test',
     };
     const state: NotesOperationsState = {
       mealOperationStatuses: [
@@ -249,13 +271,13 @@ describe('notes operations reducer', () => {
   });
 
   test('should handle delete request', () => {
-    const action: DeleteNoteRequestAction = {
+    const action: RequestAction<NotesOperationsActionTypes.DeleteRequest, NoteDeleteRequest> = {
       type: NotesOperationsActionTypes.DeleteRequest,
-      request: {
+      payload: {
         id: 1,
         mealType: MealType.Breakfast,
       },
-      operationMessage: 'Test',
+      requestMessage: 'Test',
     };
     const state: NotesOperationsState = {
       mealOperationStatuses: [
@@ -289,9 +311,13 @@ describe('notes operations reducer', () => {
   });
 
   test('should handle delete success', () => {
-    const action: DeleteNoteSuccessAction = {
+    const action: SuccessAction<NotesOperationsActionTypes.DeleteSuccess, {}, NoteDeleteRequest> = {
       type: NotesOperationsActionTypes.DeleteSuccess,
-      mealType: MealType.Breakfast,
+      payload: {
+        id: 1,
+        mealType: MealType.Breakfast,
+      },
+      data: {},
     };
     const state: NotesOperationsState = {
       mealOperationStatuses: [
@@ -324,10 +350,13 @@ describe('notes operations reducer', () => {
   });
 
   test('should handle delete error', () => {
-    const action: DeleteNoteErrorAction = {
+    const action: ErrorAction<NotesOperationsActionTypes.DeleteError, NoteDeleteRequest> = {
       type: NotesOperationsActionTypes.DeleteError,
-      mealType: MealType.Breakfast,
-      error: 'Test',
+      payload: {
+        id: 1,
+        mealType: MealType.Breakfast,
+      },
+      errorMessage: 'Test',
     };
     const state: NotesOperationsState = {
       mealOperationStatuses: [

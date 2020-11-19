@@ -31,13 +31,13 @@ const notesListReducer = (state: NotesListState = initialState, action: NotesLis
         notesForPageFetchState: {
           loading: true,
           loaded: false,
-          loadingMessage: action.loadingMessage,
+          loadingMessage: action.requestMessage,
         },
       };
     case NotesListActionTypes.SuccessForPage:
       return {
         ...state,
-        noteItems: action.noteItems,
+        noteItems: action.data,
         notesForPageFetchState: {
           loading: false,
           loaded: true,
@@ -57,12 +57,12 @@ const notesListReducer = (state: NotesListState = initialState, action: NotesLis
       return {
         ...state,
         notesForMealFetchStates: [
-          ...state.notesForMealFetchStates.filter(fs => fs.mealType !== action.mealType),
+          ...state.notesForMealFetchStates.filter(fs => fs.mealType !== action.payload.mealType),
           {
-            mealType: action.mealType,
+            mealType: action.payload.mealType,
             loading: true,
             loaded: false,
-            loadingMessage: action.loadingMessage,
+            loadingMessage: action.requestMessage,
           },
         ],
       };
@@ -71,14 +71,14 @@ const notesListReducer = (state: NotesListState = initialState, action: NotesLis
         ...state,
         noteItems: [
           // Sorting meals by type for correct display
-          ...state.noteItems.filter(n => n.mealType < action.mealType),
-          ...action.noteItems,
-          ...state.noteItems.filter(n => n.mealType > action.mealType),
+          ...state.noteItems.filter(n => n.mealType < action.payload.mealType),
+          ...action.data,
+          ...state.noteItems.filter(n => n.mealType > action.payload.mealType),
         ],
         notesForMealFetchStates: [
-          ...state.notesForMealFetchStates.filter(fs => fs.mealType !== action.mealType),
+          ...state.notesForMealFetchStates.filter(fs => fs.mealType !== action.payload.mealType),
           {
-            mealType: action.mealType,
+            mealType: action.payload.mealType,
             loading: false,
             loaded: true,
           },
@@ -88,9 +88,9 @@ const notesListReducer = (state: NotesListState = initialState, action: NotesLis
       return {
         ...state,
         notesForMealFetchStates: [
-          ...state.notesForMealFetchStates.filter(fs => fs.mealType !== action.mealType),
+          ...state.notesForMealFetchStates.filter(fs => fs.mealType !== action.payload.mealType),
           {
-            mealType: action.mealType,
+            mealType: action.payload.mealType,
             loading: false,
             loaded: false,
             error: action.errorMessage,

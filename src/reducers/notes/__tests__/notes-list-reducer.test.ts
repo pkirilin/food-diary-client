@@ -1,13 +1,6 @@
-import {
-  GetNotesForMealErrorAction,
-  GetNotesForMealRequestAction,
-  GetNotesForMealSuccessAction,
-  GetNotesForPageErrorAction,
-  GetNotesForPageRequestAction,
-  GetNotesForPageSuccessAction,
-  NotesListActionTypes,
-} from '../../../action-types';
-import { MealType, NoteItem } from '../../../models';
+import { NotesListActionTypes } from '../../../action-types';
+import { ErrorAction, RequestAction, SuccessAction } from '../../../helpers';
+import { MealType, NoteItem, NotesForMealSearchRequest, NotesSearchRequest } from '../../../models';
 import { NotesListState } from '../../../store';
 import notesListReducer, { initialState } from '../notes-list-reducer';
 
@@ -34,9 +27,10 @@ function generateTestNoteItems(): NoteItem[] {
 
 describe('notes list reducer', () => {
   test('should handle notes for page request', () => {
-    const action: GetNotesForPageRequestAction = {
+    const action: RequestAction<NotesListActionTypes.RequestForPage, NotesSearchRequest> = {
       type: NotesListActionTypes.RequestForPage,
-      loadingMessage: 'Test',
+      requestMessage: 'Test',
+      payload: { pageId: 1 },
     };
     const expectedState: NotesListState = {
       ...initialState,
@@ -53,13 +47,14 @@ describe('notes list reducer', () => {
   });
 
   test('should handle notes for page success', () => {
-    const action: GetNotesForPageSuccessAction = {
+    const action: SuccessAction<NotesListActionTypes.SuccessForPage, NoteItem[], NotesSearchRequest> = {
       type: NotesListActionTypes.SuccessForPage,
-      noteItems: generateTestNoteItems(),
+      data: generateTestNoteItems(),
+      payload: { pageId: 1 },
     };
     const expectedState: NotesListState = {
       ...initialState,
-      noteItems: action.noteItems,
+      noteItems: action.data,
       notesForPageFetchState: {
         loading: false,
         loaded: true,
@@ -72,9 +67,10 @@ describe('notes list reducer', () => {
   });
 
   test('should handle notes for page error', () => {
-    const action: GetNotesForPageErrorAction = {
+    const action: ErrorAction<NotesListActionTypes.ErrorForPage, NotesSearchRequest> = {
       type: NotesListActionTypes.ErrorForPage,
       errorMessage: 'Test',
+      payload: { pageId: 1 },
     };
     const expectedState: NotesListState = {
       ...initialState,
@@ -91,10 +87,13 @@ describe('notes list reducer', () => {
   });
 
   test('should handle notes for meal request', () => {
-    const action: GetNotesForMealRequestAction = {
+    const action: RequestAction<NotesListActionTypes.RequestForMeal, NotesForMealSearchRequest> = {
       type: NotesListActionTypes.RequestForMeal,
-      mealType: MealType.Breakfast,
-      loadingMessage: 'Test',
+      requestMessage: 'Test',
+      payload: {
+        pageId: 1,
+        mealType: MealType.Breakfast,
+      },
     };
     const state: NotesListState = {
       ...initialState,
@@ -134,10 +133,13 @@ describe('notes list reducer', () => {
   });
 
   test('should handle notes for meal success', () => {
-    const action: GetNotesForMealSuccessAction = {
+    const action: SuccessAction<NotesListActionTypes.SuccessForMeal, NoteItem[], NotesForMealSearchRequest> = {
       type: NotesListActionTypes.SuccessForMeal,
-      mealType: MealType.Lunch,
-      noteItems: [generateTestNoteItem(MealType.Lunch)],
+      payload: {
+        pageId: 1,
+        mealType: MealType.Lunch,
+      },
+      data: [generateTestNoteItem(MealType.Lunch)],
     };
     const state: NotesListState = {
       ...initialState,
@@ -183,9 +185,12 @@ describe('notes list reducer', () => {
   });
 
   test('should handle notes for meal error', () => {
-    const action: GetNotesForMealErrorAction = {
+    const action: ErrorAction<NotesListActionTypes.ErrorForMeal, NotesForMealSearchRequest> = {
       type: NotesListActionTypes.ErrorForMeal,
-      mealType: MealType.Breakfast,
+      payload: {
+        pageId: 1,
+        mealType: MealType.Breakfast,
+      },
       errorMessage: 'Test',
     };
     const state: NotesListState = {

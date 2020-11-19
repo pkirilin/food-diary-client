@@ -1,6 +1,6 @@
-import { Action, ActionCreator } from 'redux';
-import { NoteItem, MealType, NotesSearchRequest, NotesForMealSearchRequest } from '../../models';
-import { ThunkAction, ThunkDispatch } from 'redux-thunk';
+import { NoteItem, NotesSearchRequest, NotesForMealSearchRequest } from '../../models';
+import { ThunkDispatch } from 'redux-thunk';
+import { ThunkHelperAllActions, ThunkHelperResultActions } from '../../helpers';
 
 export enum NotesListActionTypes {
   RequestForPage = 'NOTES_LIST__REQUEST_FOR_PAGE',
@@ -12,85 +12,46 @@ export enum NotesListActionTypes {
   ErrorForMeal = 'NOTES_LIST__ERROR_FOR_MEAL',
 }
 
-export interface GetNotesForPageRequestAction extends Action<NotesListActionTypes.RequestForPage> {
-  type: NotesListActionTypes.RequestForPage;
-  loadingMessage?: string;
-}
+export type GetNotesForPageActions = ThunkHelperAllActions<
+  NotesListActionTypes.RequestForPage,
+  NotesListActionTypes.SuccessForPage,
+  NotesListActionTypes.ErrorForPage,
+  NoteItem[],
+  NotesSearchRequest
+>;
 
-export interface GetNotesForPageSuccessAction extends Action<NotesListActionTypes.SuccessForPage> {
-  type: NotesListActionTypes.SuccessForPage;
-  noteItems: NoteItem[];
-}
+export type GetNotesForMealActions = ThunkHelperAllActions<
+  NotesListActionTypes.RequestForMeal,
+  NotesListActionTypes.SuccessForMeal,
+  NotesListActionTypes.ErrorForMeal,
+  NoteItem[],
+  NotesForMealSearchRequest
+>;
 
-export interface GetNotesForPageErrorAction extends Action<NotesListActionTypes.ErrorForPage> {
-  type: NotesListActionTypes.ErrorForPage;
-  errorMessage: string;
-}
+export type GetNotesForPageResultActions = ThunkHelperResultActions<
+  NotesListActionTypes.SuccessForPage,
+  NotesListActionTypes.ErrorForPage,
+  NoteItem[],
+  NotesSearchRequest
+>;
 
-export interface GetNotesForMealRequestAction extends Action<NotesListActionTypes.RequestForMeal> {
-  type: NotesListActionTypes.RequestForMeal;
-  mealType: MealType;
-  loadingMessage?: string;
-}
-
-export interface GetNotesForMealSuccessAction extends Action<NotesListActionTypes.SuccessForMeal> {
-  type: NotesListActionTypes.SuccessForMeal;
-  mealType: MealType;
-  noteItems: NoteItem[];
-}
-
-export interface GetNotesForMealErrorAction extends Action<NotesListActionTypes.ErrorForMeal> {
-  type: NotesListActionTypes.ErrorForMeal;
-  mealType: MealType;
-  errorMessage: string;
-}
-
-export type GetNotesForPageActions =
-  | GetNotesForPageRequestAction
-  | GetNotesForPageSuccessAction
-  | GetNotesForPageErrorAction;
-
-export type GetNotesForMealActions =
-  | GetNotesForMealRequestAction
-  | GetNotesForMealSuccessAction
-  | GetNotesForMealErrorAction;
+export type GetNotesForMealResultActions = ThunkHelperResultActions<
+  NotesListActionTypes.SuccessForMeal,
+  NotesListActionTypes.ErrorForMeal,
+  NoteItem[],
+  NotesForMealSearchRequest
+>;
 
 export type NotesListActions = GetNotesForPageActions | GetNotesForMealActions;
 
-export type GetNotesForPageActionCreator = ActionCreator<
-  ThunkAction<
-    Promise<GetNotesForPageSuccessAction | GetNotesForPageErrorAction>,
-    NoteItem[],
-    NotesSearchRequest,
-    GetNotesForPageSuccessAction | GetNotesForPageErrorAction
-  >
->;
-
-export type GetNotesForMealActionCreator = ActionCreator<
-  ThunkAction<
-    Promise<GetNotesForMealSuccessAction | GetNotesForMealErrorAction>,
-    NoteItem[],
-    NotesForMealSearchRequest,
-    GetNotesForMealSuccessAction | GetNotesForMealErrorAction
-  >
->;
-
-export type GetNotesForPageDispatch = ThunkDispatch<
-  NoteItem[],
-  NotesSearchRequest,
-  GetNotesForPageSuccessAction | GetNotesForPageErrorAction
->;
+export type GetNotesForPageDispatch = ThunkDispatch<NoteItem[], NotesSearchRequest, GetNotesForPageResultActions>;
 
 export type GetNotesForMealDispatch = ThunkDispatch<
   NoteItem[],
   NotesForMealSearchRequest,
-  GetNotesForMealSuccessAction | GetNotesForMealErrorAction
+  GetNotesForMealResultActions
 >;
 
-export type GetNotesForPageDispatchProp = (
-  request: NotesSearchRequest,
-) => Promise<GetNotesForPageSuccessAction | GetNotesForPageErrorAction>;
+export type GetNotesForPageDispatchProp = (request: NotesSearchRequest) => Promise<GetNotesForPageResultActions>;
 
-export type GetNotesForMealDispatchProp = (
-  request: NotesForMealSearchRequest,
-) => Promise<GetNotesForMealSuccessAction | GetNotesForMealErrorAction>;
+export type GetNotesForMealDispatchProp = (request: NotesForMealSearchRequest) => Promise<GetNotesForMealResultActions>;

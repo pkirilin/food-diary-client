@@ -1,6 +1,7 @@
-import { Action, ActionCreator } from 'redux';
+import { Action } from 'redux';
 import { CategoryItem } from '../../models';
-import { ThunkAction, ThunkDispatch } from 'redux-thunk';
+import { ThunkDispatch } from 'redux-thunk';
+import { ThunkHelperAllActions, ThunkHelperResultActions } from '../../helpers';
 
 export enum CategoriesListActionTypes {
   Request = 'CATEGORIES_LIST__REQUEST',
@@ -9,49 +10,26 @@ export enum CategoriesListActionTypes {
   SetEditable = 'CATEGORIES_LIST__SET_EDITABLE_FOR_PAGES',
 }
 
-export interface GetCategoriesListRequestAction extends Action<CategoriesListActionTypes.Request> {
-  type: CategoriesListActionTypes.Request;
-  loadingMessage?: string;
-}
+export type GetCategoriesListActions = ThunkHelperAllActions<
+  CategoriesListActionTypes.Request,
+  CategoriesListActionTypes.Success,
+  CategoriesListActionTypes.Error,
+  CategoryItem[]
+>;
 
-export interface GetCategoriesListSuccessAction extends Action<CategoriesListActionTypes.Success> {
-  type: CategoriesListActionTypes.Success;
-  categories: CategoryItem[];
-}
+export type GetCategoriesListResultActions = ThunkHelperResultActions<
+  CategoriesListActionTypes.Success,
+  CategoriesListActionTypes.Error,
+  CategoryItem[]
+>;
 
-export interface GetCategoriesListErrorAction extends Action<CategoriesListActionTypes.Error> {
-  type: CategoriesListActionTypes.Error;
-  errorMessage: string;
-}
+export type GetCategoriesListDispatch = ThunkDispatch<CategoryItem[], {}, GetCategoriesListResultActions>;
+
+export type GetCategoriesListDispatchProp = () => Promise<GetCategoriesListResultActions>;
 
 export interface SetEditableForCategoriesAction extends Action<CategoriesListActionTypes.SetEditable> {
-  type: CategoriesListActionTypes.SetEditable;
   categoriesIds: number[];
   editable: boolean;
 }
 
-export type GetCategoriesListActions =
-  | GetCategoriesListRequestAction
-  | GetCategoriesListSuccessAction
-  | GetCategoriesListErrorAction;
-
 export type CategoriesListActions = GetCategoriesListActions | SetEditableForCategoriesAction;
-
-export type GetCategoriesListActionCreator = ActionCreator<
-  ThunkAction<
-    Promise<GetCategoriesListSuccessAction | GetCategoriesListErrorAction>,
-    CategoryItem[],
-    void,
-    GetCategoriesListSuccessAction | GetCategoriesListErrorAction
-  >
->;
-
-export type GetCategoriesListDispatch = ThunkDispatch<
-  CategoryItem[],
-  void,
-  GetCategoriesListSuccessAction | GetCategoriesListErrorAction
->;
-
-export type GetCategoriesListDispatchProp = () => Promise<
-  GetCategoriesListSuccessAction | GetCategoriesListErrorAction
->;
