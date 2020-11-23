@@ -1,53 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import ProductsTableConnected from '../ProductsTable';
-import { ProductsStateToPropsMapResult, ProductsDispatchToPropsMapResult } from './ProductsConnected';
-import { ProductsFilter } from '../../models';
-import { productsFilterInitialState } from '../../reducers/products';
+import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { Container } from '../__ui__';
+import { useModalMessage } from '../../hooks';
+import { clearProductsFilter } from '../../action-creators';
+import ProductsTableConnected from '../ProductsTable';
 import ProductsControlPanelConnected from '../ProductsControlPanel';
 import ProductsFilterInfoConnected from '../ProductsFilterInfo';
-import { useModalMessage } from '../../hooks';
 
-interface ProductsProps extends ProductsStateToPropsMapResult, ProductsDispatchToPropsMapResult {}
-
-const Products: React.FC<ProductsProps> = ({ productsFilter, clearProductsFilter }: ProductsProps) => {
-  const [isFilterCleared, setIsFilterCleared] = useState(false);
-
-  useEffect(() => {
-    const isDefaultProductsFilter = ({ pageSize, pageNumber, categoryId }: ProductsFilter): boolean => {
-      return (
-        pageSize === productsFilterInitialState.params.pageSize &&
-        pageNumber === productsFilterInitialState.params.pageNumber &&
-        categoryId === productsFilterInitialState.params.categoryId
-      );
-    };
-
-    if (isDefaultProductsFilter(productsFilter)) {
-      setIsFilterCleared(true);
-    }
-  }, [productsFilter, setIsFilterCleared]);
+const Products: React.FC = () => {
+  const dispatch = useDispatch();
 
   useEffect(() => {
     return (): void => {
-      clearProductsFilter();
+      dispatch(clearProductsFilter());
     };
-  }, [clearProductsFilter]);
+  }, [dispatch]);
 
   useModalMessage('Error', state => state.products.operations.productOperationStatus.error);
 
   return (
     <main>
       <section>
-        {/* Ensures that products table in this section is initially rendered with cleared filter */}
-        {isFilterCleared && (
-          <Container direction="column" spaceBetweenChildren="medium">
-            <Container direction="column" spaceBetweenChildren="large">
-              <ProductsControlPanelConnected></ProductsControlPanelConnected>
-              <ProductsFilterInfoConnected></ProductsFilterInfoConnected>
-            </Container>
-            <ProductsTableConnected></ProductsTableConnected>
+        <Container direction="column" spaceBetweenChildren="medium">
+          <Container justify="space-between" align="center" spaceBetweenChildren="medium">
+            <h1>Products</h1>
+            <ProductsControlPanelConnected></ProductsControlPanelConnected>
           </Container>
-        )}
+          <ProductsFilterInfoConnected></ProductsFilterInfoConnected>
+          <ProductsTableConnected></ProductsTableConnected>
+        </Container>
       </section>
     </main>
   );

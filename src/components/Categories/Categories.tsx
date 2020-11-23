@@ -1,45 +1,49 @@
-import React, { useEffect } from 'react';
-import './Categories.scss';
-import CategoriesListControlsTopConnected from '../CategoriesListControlsTop';
-import CategoriesListConnected from '../CategoriesList';
-import CategoriesOperationsPanelConnected from '../CategoriesOperationsPanel';
-import { Switch, Route } from 'react-router-dom';
-import { CategoriesDispatchToPropsMapResult } from './CategoriesConnected';
-import CategoryContentConnected from '../CategoryContent';
-import CategoryContentEmpty from '../CategoryContentEmpty';
-import { useModalMessage } from '../../hooks';
+import React from 'react';
+import { useDispatch } from 'react-redux';
+import { useModalMessage, useTypedSelector } from '../../hooks';
+import { Button, Container } from '../__ui__';
+import { createCategory, openModal } from '../../action-creators';
+import CategoriesTable from '../CategoriesTable';
+import CategoryInput from '../CategoryInput';
 
-type CategoriesProps = CategoriesDispatchToPropsMapResult;
-
-const Categories: React.FC<CategoriesProps> = ({ clearProductsFilter }: CategoriesProps) => {
-  useEffect(() => {
-    return (): void => {
-      clearProductsFilter();
-    };
-  }, [clearProductsFilter]);
-
+const Categories: React.FC = () => {
   useModalMessage('Error', state => state.categories.operations.status.error);
 
+  const isCreateButtonDisabled = useTypedSelector(
+    state => state.categories.list.categoryItemsFetchState.loading || state.categories.operations.status.performing,
+  );
+  const dispatch = useDispatch();
+
+  const handleCreateCategory = (): void => {
+    dispatch(
+      openModal(
+        'New category',
+        <CategoryInput
+          onSubmit={(newCategory): void => {
+            dispatch(createCategory(newCategory));
+          }}
+        ></CategoryInput>,
+        { width: '35%' },
+      ),
+    );
+  };
+
   return (
-    <React.Fragment>
-      <aside>
-        <CategoriesListControlsTopConnected></CategoriesListControlsTopConnected>
-        <CategoriesOperationsPanelConnected></CategoriesOperationsPanelConnected>
-        <CategoriesListConnected></CategoriesListConnected>
-      </aside>
-      <main>
-        <section>
-          <Switch>
-            <Route exact path="/categories">
-              <CategoryContentEmpty></CategoryContentEmpty>
-            </Route>
-            <Route exact path="/categories/:id">
-              <CategoryContentConnected></CategoryContentConnected>
-            </Route>
-          </Switch>
-        </section>
-      </main>
-    </React.Fragment>
+    <main>
+      <section>
+        <Container direction="column" spaceBetweenChildren="medium">
+          <Container justify="space-between" align="center" spaceBetweenChildren="medium">
+            <h1>Categories</h1>
+            <Container>
+              <Button disabled={isCreateButtonDisabled} onClick={handleCreateCategory}>
+                Create category
+              </Button>
+            </Container>
+          </Container>
+          <CategoriesTable></CategoriesTable>
+        </Container>
+      </section>
+    </main>
   );
 };
 

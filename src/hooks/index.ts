@@ -12,6 +12,8 @@ import useProductInputDisabled from './useProductInputDisabled';
 import useFocus from './useFocus';
 import useHover from './useHover';
 import useModalMessage from './useModalMessage';
+import useTypedSelector from './useTypedSelector';
+import useInput from './useInput';
 
 export {
   useOutsideClick,
@@ -28,4 +30,8 @@ export {
   useFocus,
   useHover,
   useModalMessage,
+  useTypedSelector,
+  useInput,
 };
+
+export * from './useInput';
