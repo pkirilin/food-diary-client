@@ -1,26 +1,31 @@
 import React from 'react';
-import './App.scss';
-import { createBrowserHistory } from 'history';
-import { Router, Switch, Route, Redirect } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import PagesConnected from './components/Pages';
-import Products from './components/Products';
-import Categories from './components/Categories';
-import ModalConnected from './components/Modal/ModalConnected';
+import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
+import { Container, makeStyles } from '@material-ui/core';
+import Navbar from './Navbar';
+import { Pages } from './features/pages/components';
+import { Products } from './features/products/components';
+import { Categories } from './features/categories/components';
 
-const history = createBrowserHistory();
+const useStyles = makeStyles(theme => ({
+  content: {
+    marginTop: theme.spacing(2),
+  },
+}));
 
 const App: React.FC = () => {
+  const classes = useStyles();
+
   return (
-    <Router history={history}>
-      <ModalConnected></ModalConnected>
+    <Router>
       <Navbar></Navbar>
-      <Switch>
-        <Route path="/pages" component={PagesConnected}></Route>
-        <Route exact path="/products" component={Products}></Route>
-        <Route path="/categories" component={Categories}></Route>
-        <Redirect exact from="/" to="/pages"></Redirect>
-      </Switch>
+      <Container className={classes.content}>
+        <Switch>
+          <Route path="/pages" component={Pages}></Route>
+          <Route path="/products" component={Products}></Route>
+          <Route path="/categories" component={Categories}></Route>
+          <Redirect exact from="/" to="/pages"></Redirect>
+        </Switch>
+      </Container>
     </Router>
   );
 };

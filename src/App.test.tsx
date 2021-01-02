@@ -1,9 +1,13 @@
 import React from 'react';
 import App from './App';
-import { shallow } from 'enzyme';
+import { renderExtended } from './features/__shared__/utils';
 
 describe('App component', () => {
-  it('should render without crashing', () => {
-    shallow(<App></App>);
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('should render without errors', () => {
+    renderExtended(<App></App>, jest.fn());
   });
 });
