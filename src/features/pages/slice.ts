@@ -2,13 +2,15 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { OperationStatus } from '../__shared__/models';
 import { SelectionPayload } from '../__shared__/types';
 import { AnyAsyncThunk, createAsyncThunkMatcher } from '../__shared__/utils';
-import { PageItem } from './models';
+import { PageItem, PageItemsFilter } from './models';
 import { createPage, deletePages, editPage, getPages } from './thunks';
 
 export type PagesState = {
   pageItems: PageItem[];
   pageItemsChangingStatus: OperationStatus;
   selectedPageIds: number[];
+  totalPagesCount: number;
+  filter: PageItemsFilter;
 };
 
 export interface SelectPagePayload extends SelectionPayload {
@@ -21,6 +23,12 @@ const initialState: PagesState = {
   pageItems: [],
   pageItemsChangingStatus: 'idle',
   selectedPageIds: [],
+  totalPagesCount: 0,
+  filter: {
+    changed: false,
+    pageNumber: 1,
+    pageSize: 10,
+  },
 };
 
 const pageItemsChangingThunks: AnyAsyncThunk[] = [createPage, editPage, deletePages];
@@ -41,11 +49,18 @@ const pagesSlice = createSlice({
       const { selected } = payload;
       state.selectedPageIds = selected ? state.pageItems.map(p => p.id) : [];
     },
+    pageNumberChanged: (state, { payload }: PayloadAction<number>) => {
+      state.filter.pageNumber = payload;
+    },
+    pageSizeChanged: (state, { payload }: PayloadAction<number>) => {
+      state.filter.pageSize = payload;
+    },
   },
   extraReducers: builder =>
     builder
       .addCase(getPages.fulfilled, (state, { payload }) => {
-        state.pageItems = payload;
+        state.pageItems = payload.pageItems;
+        state.totalPagesCount = payload.totalPagesCount;
       })
       .addCase(deletePages.fulfilled, state => {
         state.selectedPageIds = [];
@@ -61,6 +76,11 @@ const pagesSlice = createSlice({
       }),
 });
 
-export const { selectPage, selectAllPages } = pagesSlice.actions;
+export const {
+  selectPage,
+  selectAllPages,
+  pageNumberChanged,
+  pageSizeChanged,
+} = pagesSlice.actions;
 
 export default pagesSlice.reducer;
