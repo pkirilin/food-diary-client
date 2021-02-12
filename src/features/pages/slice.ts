@@ -2,8 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { OperationStatus } from '../__shared__/models';
 import { SelectionPayload } from '../__shared__/types';
 import { AnyAsyncThunk, createAsyncThunkMatcher } from '../__shared__/utils';
-import { PageItem, PageItemsFilter } from './models';
-import { createPage, deletePages, editPage, getPages } from './thunks';
+import { Page, PageItem, PageItemsFilter } from './models';
+import { createPage, deletePages, editPage, getPageById, getPages } from './thunks';
 
 export type PagesState = {
   pageItems: PageItem[];
@@ -11,6 +11,9 @@ export type PagesState = {
   selectedPageIds: number[];
   totalPagesCount: number;
   filter: PageItemsFilter;
+  current?: Page;
+  previous?: Page;
+  next?: Page;
 };
 
 export interface SelectPagePayload extends SelectionPayload {
@@ -61,6 +64,11 @@ const pagesSlice = createSlice({
       .addCase(getPages.fulfilled, (state, { payload }) => {
         state.pageItems = payload.pageItems;
         state.totalPagesCount = payload.totalPagesCount;
+      })
+      .addCase(getPageById.fulfilled, (state, { payload }) => {
+        state.current = payload.currentPage;
+        state.previous = payload.previousPage;
+        state.next = payload.nextPage;
       })
       .addCase(deletePages.fulfilled, state => {
         state.selectedPageIds = [];

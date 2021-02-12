@@ -1,7 +1,6 @@
 import React from 'react';
 import { makeStyles, Typography } from '@material-ui/core';
-
-const pageDate = new Date('2020-01-10').toLocaleDateString();
+import { useTypedSelector } from '../../__shared__/hooks';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -11,10 +10,17 @@ const useStyles = makeStyles(theme => ({
 
 const PageContentHeader: React.FC = () => {
   const classes = useStyles();
+  const page = useTypedSelector(state => state.pages.current);
+
+  if (!page) {
+    return null;
+  }
+
+  const currentPageDate = new Date(page.date).toLocaleDateString();
 
   return (
     <Typography variant="h1" align="center" className={classes.root}>
-      {pageDate}
+      {currentPageDate}
     </Typography>
   );
 };

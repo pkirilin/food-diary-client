@@ -1,7 +1,7 @@
 import config from '../__shared__/config';
 import { SortOrder } from '../__shared__/models';
 import { createApiCallAsyncThunk, createUrl, handleEmptyResponse } from '../__shared__/utils';
-import { PageCreateEdit, PagesSearchResult } from './models';
+import { Page, PageCreateEdit, PagesSearchResult } from './models';
 
 export type GetPagesRequest = {
   startDate?: string;
@@ -16,11 +16,25 @@ export type EditPageRequest = {
   page: PageCreateEdit;
 };
 
+export interface PageByIdResponse {
+  currentPage: Page;
+  previousPage: Page;
+  nextPage: Page;
+}
+
 export const getPages = createApiCallAsyncThunk<PagesSearchResult, GetPagesRequest>(
   'pages/getPages',
   params => createUrl(`${config.apiUrl}/v1/pages`, params),
   response => response.json(),
   'Failed to get pages',
+);
+
+// TODO: implement endpoint on backend
+export const getPageById = createApiCallAsyncThunk<PageByIdResponse, number>(
+  'pages/getPageById',
+  id => `${config.apiUrl}/v1/pages/${id}`,
+  response => response.json(),
+  'Failed to get page',
 );
 
 export const createPage = createApiCallAsyncThunk<number, PageCreateEdit>(
