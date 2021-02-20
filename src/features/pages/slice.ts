@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Status } from '../__shared__/models';
+import { SortOrder, Status } from '../__shared__/models';
 import { SelectionPayload } from '../__shared__/types';
 import { createAsyncThunkMatcher } from '../__shared__/utils';
 import { Page, PageItem, PageItemsFilter } from './models';
@@ -23,6 +23,20 @@ export interface SelectPagePayload extends SelectionPayload {
 
 export type SelectAllPagesPayload = SelectionPayload;
 
+export type FilterChangedPayload = Pick<PageItemsFilter, 'startDate' | 'endDate' | 'sortOrder'>;
+
+function changeFilter(
+  state: PagesState,
+  filterParams: Partial<Omit<PageItemsFilter, 'changed'>>,
+  changed = true,
+): void {
+  state.filter = {
+    ...state.filter,
+    ...filterParams,
+    changed,
+  };
+}
+
 const initialState: PagesState = {
   pageItems: [],
   operationStatus: 'idle',
@@ -32,6 +46,7 @@ const initialState: PagesState = {
     changed: false,
     pageNumber: 1,
     pageSize: 10,
+    sortOrder: SortOrder.Descending,
   },
 };
 
@@ -54,10 +69,25 @@ const pagesSlice = createSlice({
       state.selectedPageIds = selected ? state.pageItems.map(p => p.id) : [];
     },
     pageNumberChanged: (state, { payload }: PayloadAction<number>) => {
-      state.filter.pageNumber = payload;
+      changeFilter(state, { pageNumber: payload }, false);
     },
     pageSizeChanged: (state, { payload }: PayloadAction<number>) => {
-      state.filter.pageSize = payload;
+      changeFilter(state, { pageSize: payload }, false);
+    },
+    startDateChanged: (state, { payload }: PayloadAction<string | undefined>) => {
+      changeFilter(state, { startDate: payload });
+    },
+    endDateChanged: (state, { payload }: PayloadAction<string | undefined>) => {
+      changeFilter(state, { endDate: payload });
+    },
+    sortOrderChanged: (state, { payload }: PayloadAction<SortOrder>) => {
+      changeFilter(state, { sortOrder: payload });
+    },
+    filterReset: state => {
+      state.filter.changed = false;
+      state.filter.startDate = undefined;
+      state.filter.endDate = undefined;
+      state.filter.sortOrder = SortOrder.Descending;
     },
   },
   extraReducers: builder =>
@@ -90,6 +120,10 @@ export const {
   selectAllPages,
   pageNumberChanged,
   pageSizeChanged,
+  startDateChanged,
+  endDateChanged,
+  sortOrderChanged,
+  filterReset,
 } = pagesSlice.actions;
 
 export default pagesSlice.reducer;

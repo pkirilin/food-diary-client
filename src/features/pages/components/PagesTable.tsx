@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   Checkbox,
@@ -8,10 +8,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   Typography,
 } from '@material-ui/core';
 import PagesTableRow from './PagesTableRow';
-import { selectAllPages } from '../slice';
+import { selectAllPages, sortOrderChanged } from '../slice';
 import { getPages } from '../thunks';
 import { useRefreshEffect, useTypedSelector } from '../../__shared__/hooks';
 import { SortOrder } from '../../__shared__/models';
@@ -21,6 +22,8 @@ const PagesTable: React.FC = () => {
   const selectedPagesCount = useTypedSelector(state => state.pages.selectedPageIds.length);
   const pageItemsFilter = useTypedSelector(state => state.pages.filter);
 
+  const [sortDirectionByDate, setSortDirectionByDate] = useState<'asc' | 'desc'>();
+
   const areAllPagesSelected = pageItems.length > 0 && pageItems.length === selectedPagesCount;
 
   const dispatch = useDispatch();
@@ -28,24 +31,36 @@ const PagesTable: React.FC = () => {
   useRefreshEffect(
     state => state.pages.operationStatus,
     () => {
-      const { pageNumber, pageSize } = pageItemsFilter;
+      const { pageNumber, pageSize, startDate, endDate, sortOrder } = pageItemsFilter;
 
       dispatch(
         getPages({
-          sortOrder: SortOrder.Descending,
+          sortOrder,
           pageNumber,
           pageSize,
+          startDate,
+          endDate,
         }),
       );
     },
     [pageItemsFilter],
   );
 
+  useEffect(() => {
+    setSortDirectionByDate(pageItemsFilter.sortOrder === SortOrder.Ascending ? 'asc' : 'desc');
+  }, [pageItemsFilter.sortOrder]);
+
   const handleSelectAllPages = (): void => {
     dispatch(
       selectAllPages({
         selected: !areAllPagesSelected,
       }),
+    );
+  };
+
+  const handleReorder = (): void => {
+    dispatch(
+      sortOrderChanged(sortDirectionByDate === 'asc' ? SortOrder.Descending : SortOrder.Ascending),
     );
   };
 
@@ -63,7 +78,11 @@ const PagesTable: React.FC = () => {
                 disabled={pageItems.length === 0}
               />
             </TableCell>
-            <TableCell>Date</TableCell>
+            <TableCell>
+              <TableSortLabel active direction={sortDirectionByDate} onClick={handleReorder}>
+                Date
+              </TableSortLabel>
+            </TableCell>
             <TableCell>Total calories</TableCell>
             <TableCell>Count notes</TableCell>
             <TableCell></TableCell>
