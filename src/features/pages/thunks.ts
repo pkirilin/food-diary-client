@@ -1,6 +1,11 @@
 import config from '../__shared__/config';
-import { SortOrder } from '../__shared__/models';
-import { createApiCallAsyncThunk, createUrl, handleEmptyResponse } from '../__shared__/utils';
+import { ExportFormat, SortOrder } from '../__shared__/models';
+import {
+  createApiCallAsyncThunk,
+  createUrl,
+  downloadFile,
+  handleEmptyResponse,
+} from '../__shared__/utils';
 import { Page, PageCreateEdit, PagesSearchResult } from './models';
 
 export type GetPagesRequest = {
@@ -20,6 +25,12 @@ export interface PageByIdResponse {
   currentPage: Page;
   previousPage: Page;
   nextPage: Page;
+}
+
+export interface ExportPagesRequest {
+  startDate: string;
+  endDate: string;
+  format: ExportFormat;
 }
 
 export const getPages = createApiCallAsyncThunk<PagesSearchResult, GetPagesRequest>(
@@ -67,5 +78,31 @@ export const deletePages = createApiCallAsyncThunk<void, number[]>(
   {
     method: 'DELETE',
     bodyCreator: pageids => JSON.stringify(pageids),
+  },
+);
+
+export const exportPages = createApiCallAsyncThunk<void, ExportPagesRequest>(
+  'pages/exportPages',
+  ({ format, ...params }) => createUrl(`${config.apiUrl}/v1/exports/${format}`, { ...params }),
+  async (response, { startDate, endDate, format }) => {
+    const blob = await response.blob();
+    downloadFile(blob, `FoodDiary_${startDate}_${endDate}.${format}`);
+  },
+  'Failed to export pages',
+);
+
+export const importPages = createApiCallAsyncThunk<void, File>(
+  'pages/importPages',
+  () => `${config.apiUrl}/v1/imports/json`,
+  handleEmptyResponse,
+  'Failed to import pages',
+  {
+    method: 'POST',
+    contentType: 'none',
+    bodyCreator: importFile => {
+      const formData = new FormData();
+      formData.append('importFile', importFile, importFile.name);
+      return formData;
+    },
   },
 );

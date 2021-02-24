@@ -5,7 +5,12 @@ export type ApiCallAsyncThunk<TData, TArgument> = AsyncThunk<
   TArgument,
   Record<string, unknown>
 >;
-export type ApiResponseHandler<TData> = (response: Response) => Promise<TData>;
+
+export type ApiResponseHandler<TData, TArgument> = (
+  response: Response,
+  arg: TArgument,
+) => Promise<TData>;
+
 export type ApiCallBodyCreator<TArgument> = (arg: TArgument) => RequestBodyFragment['body'];
 
 type ApiMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -22,7 +27,7 @@ export interface ApiCallOptions<TArgument> {
 export function createApiCallAsyncThunk<TData, TArgument>(
   typePrefix: string,
   getUrl: (arg: TArgument) => string,
-  getData: ApiResponseHandler<TData>,
+  getData: ApiResponseHandler<TData, TArgument>,
   defaultErrorMessage = 'Failed to fetch',
   options: ApiCallOptions<TArgument> = {
     method: 'GET',
@@ -50,7 +55,7 @@ export function createApiCallAsyncThunk<TData, TArgument>(
       });
 
       if (response.ok) {
-        return getData(response);
+        return getData(response, arg);
       }
 
       return rejectWithValue(`${defaultErrorMessage}: response was not ok`);
@@ -60,7 +65,7 @@ export function createApiCallAsyncThunk<TData, TArgument>(
   });
 }
 
-export const handleEmptyResponse: ApiResponseHandler<void> = async () => {
+export const handleEmptyResponse: ApiResponseHandler<void, unknown> = async () => {
   return;
 };
 
