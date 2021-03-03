@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   Button,
   Dialog,
@@ -10,8 +11,14 @@ import {
 } from '@material-ui/core';
 import { MealType, NoteCreateEdit, NoteItem } from '../models';
 import { DialogCustomActionProps } from '../../__shared__/types';
-import { useInput, useInputAutocomplete, useTypedSelector } from '../../__shared__/hooks';
-import { ProductAutocomplete } from '../../products/components';
+import {
+  useAsyncAutocompleteInput,
+  useNumericInput,
+  useTypedSelector,
+} from '../../__shared__/hooks';
+import { SimpleAutocomplete } from '../../__shared__/components';
+import { getProductsAutocomplete } from '../../products/thunks';
+import { autocompleteCleared } from '../../products/slice';
 
 interface NoteCreateEditDialogProps extends DialogProps, DialogCustomActionProps<NoteCreateEdit> {
   mealType: MealType;
@@ -39,8 +46,19 @@ const NoteCreateEditDialog: React.FC<NoteCreateEditDialogProps> = ({
       }
     : { title: 'New note', submitText: 'Create', initialProduct: null, initialQuantity: 100 };
 
-  const productInput = useInputAutocomplete(initialProduct);
-  const quantityInput = useInput(initialQuantity);
+  const dispatch = useDispatch();
+
+  const [product, setProduct, bindProduct] = useAsyncAutocompleteInput(
+    state => state.products.autocompleteOptions,
+    active => {
+      dispatch(getProductsAutocomplete(active));
+    },
+    () => {
+      dispatch(autocompleteCleared());
+    },
+  );
+
+  const [quantity, setQuantity, bindQuantity] = useNumericInput(initialQuantity);
 
   const maxDisplayOrderForNotesGroup = useTypedSelector(state =>
     state.notes.noteItems
@@ -50,22 +68,18 @@ const NoteCreateEditDialog: React.FC<NoteCreateEditDialogProps> = ({
 
   useEffect(() => {
     if (dialogProps.open) {
-      productInput.setValue(initialProduct);
+      setProduct(initialProduct);
+      setQuantity(initialQuantity);
     }
-
-    return () => {
-      productInput.setValue(initialProduct);
-      quantityInput.setValue(initialQuantity);
-    };
   }, [dialogProps.open]);
 
   const handleSubmitClick = (): void => {
-    if (productInput.value) {
+    if (product) {
       onDialogConfirm({
         mealType,
-        productId: productInput.value.id,
+        productId: product.id,
         pageId,
-        productQuantity: quantityInput.value,
+        productQuantity: quantity,
         displayOrder: note ? note.displayOrder : maxDisplayOrderForNotesGroup,
       });
     }
@@ -75,9 +89,13 @@ const NoteCreateEditDialog: React.FC<NoteCreateEditDialogProps> = ({
     <Dialog maxWidth="xs" fullWidth {...dialogProps}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <ProductAutocomplete {...productInput.binding}></ProductAutocomplete>
+        <SimpleAutocomplete
+          {...bindProduct()}
+          inputLabel="Product"
+          inputPlaceholder="Select a product"
+        ></SimpleAutocomplete>
         <TextField
-          {...quantityInput.binding}
+          {...bindQuantity()}
           type="number"
           label="Quantity"
           placeholder="Product quantity, g"

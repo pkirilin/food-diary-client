@@ -1,5 +1,5 @@
 import 'date-fns';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   Dialog,
@@ -14,7 +14,7 @@ import DateFnsUtils from '@date-io/date-fns';
 import { PageCreateEdit } from '../models';
 import { DialogCustomActionProps } from '../../__shared__/types';
 import { getDateForNewPage } from '../thunks';
-import { useTypedSelector } from '../../__shared__/hooks';
+import { useDateInput, useTypedSelector } from '../../__shared__/hooks';
 
 interface PageCreateEditDialogProps extends DialogProps, DialogCustomActionProps<PageCreateEdit> {
   page?: PageCreateEdit;
@@ -46,16 +46,16 @@ const PageCreateEditDialog: React.FC<PageCreateEditDialogProps> = ({
         initialDate: new Date(),
       };
 
-  const [date, setDate] = useState<Date | null>(initialDate);
+  const [date, setDate, bindDate] = useDateInput(initialDate);
 
   useEffect(() => {
-    if (!page && dialogProps.open) {
-      dispatch(getDateForNewPage());
-    }
-
-    return () => {
+    if (dialogProps.open) {
       setDate(initialDate);
-    };
+
+      if (!page) {
+        dispatch(getDateForNewPage());
+      }
+    }
   }, [dialogProps.open]);
 
   useEffect(() => {
@@ -63,10 +63,6 @@ const PageCreateEditDialog: React.FC<PageCreateEditDialogProps> = ({
       setDate(dateForNewPage);
     }
   }, [dateForNewPageLoading]);
-
-  const handleDateChange = (date: Date | null) => {
-    setDate(date);
-  };
 
   const handleSubmitClick = (): void => {
     if (date) {
@@ -82,14 +78,13 @@ const PageCreateEditDialog: React.FC<PageCreateEditDialogProps> = ({
       <DialogContent>
         <MuiPickersUtilsProvider utils={DateFnsUtils}>
           <KeyboardDatePicker
+            {...bindDate()}
             disableToolbar
             autoFocus
             fullWidth
             variant="inline"
             format="dd.MM.yyyy"
             margin="normal"
-            value={date}
-            onChange={handleDateChange}
           />
         </MuiPickersUtilsProvider>
       </DialogContent>

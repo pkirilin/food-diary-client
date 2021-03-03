@@ -12,7 +12,8 @@ export interface DialogHookResult<TConfirmedData>
   show: DialogActionFn;
 }
 
-export function useDialog<TConfirmedData = unknown>(
+// TODO: make centralized redux modals, remove modal hook
+export default function useDialog<TConfirmedData = unknown>(
   confirmAction: DialogConfirmActionFn<TConfirmedData>,
 ): DialogHookResult<TConfirmedData> {
   const [open, setOpen] = useState(false);
