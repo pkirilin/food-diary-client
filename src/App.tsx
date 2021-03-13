@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Redirect, Route, Switch } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 import { Container, makeStyles } from '@material-ui/core';
 import Navbar from './Navbar';
 import { PageContent, Pages } from './features/pages/components';
@@ -8,7 +9,7 @@ import { Categories } from './features/categories/components';
 
 const useStyles = makeStyles(theme => ({
   content: {
-    marginTop: theme.spacing(2),
+    margin: `${theme.spacing(2)}px 0`,
   },
 }));
 
@@ -17,8 +18,11 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      <Helmet>
+        <title>Food diary</title>
+      </Helmet>
       <Navbar></Navbar>
-      <Container className={classes.content}>
+      <Container maxWidth="xl" className={classes.content}>
         <Switch>
           <Route exact path="/pages" component={Pages}></Route>
           <Route exact path="/pages/:id" component={PageContent}></Route>
